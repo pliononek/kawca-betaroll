@@ -732,7 +732,7 @@
       <div class="field">
         <label class="label">Aktywny model</label>
         <select class="select" id="settingProvider" data-testid="setting-provider">
-          <option value="gemini">Google Gemini (1.5 Flash)</option>
+          <option value="gemini">Google Gemini (2.0 Flash)</option>
           <option value="openai">OpenAI (gpt-4o-mini)</option>
           <option value="deepseek">DeepSeek (deepseek-chat)</option>
           <option value="claude">Anthropic Claude (haiku-4-5)</option>
@@ -1534,7 +1534,7 @@ async function sendToAI(prompt, imageBase64){
 
   let endpoint, headers, body;
   if(provider==='gemini'){
-    endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(key)}`;
+    endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`;
     headers = {'Content-Type':'application/json'};
     const parts = [{text:prompt}];
     if(imageBase64){
@@ -2383,7 +2383,7 @@ async function sendAIRaw(prompt){
   if(!key) throw new Error('Brak klucza API dla '+provider+'. Dodaj w Ustawieniach.');
   let endpoint, headers, body, text='';
   if(provider==='gemini'){
-    endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(key)}`;
+    endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`;
     headers = {'Content-Type':'application/json'};
     body = JSON.stringify({contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.2, responseMimeType:'application/json'}});
   } else if(provider==='openai'){
