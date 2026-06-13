@@ -1617,14 +1617,53 @@ async function _aiCallWithFallback(prompt, imageBase64, maxTokens){
   throw new Error('Żaden z modeli '+provider+' nie działa. Ostatni błąd: '+(lastErr?.message||'unknown'));
 }
 
+function _tryParseJSON(s){ try { return JSON.parse(s); } catch(e){ return null; } }
+function _closeOpenStructures(s){
+  // LIFO stack — zamyka w odwrotnej kolejności otwierania (kluczowe dla zagnieżdżonych struktur)
+  const stack = [];
+  let inStr=false, esc=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(esc){esc=false;continue}
+    if(c==='\\'){esc=true;continue}
+    if(c==='"'){inStr=!inStr;continue}
+    if(inStr) continue;
+    if(c==='{')stack.push('}');
+    else if(c==='[')stack.push(']');
+    else if(c==='}' || c===']') stack.pop();
+  }
+  let out = s;
+  if(inStr) out += '"';
+  while(stack.length) out += stack.pop();
+  return out;
+}
 function _extractJSON(text){
-  const m = (text||'').match(/\{[\s\S]*\}/);
-  if(!m) throw new Error('AI nie zwróciło JSON: '+(text||'').slice(0,150));
-  return JSON.parse(m[0]);
+  if(!text) throw new Error('AI nie zwróciło treści');
+  let t = String(text).trim();
+  // 1) zdejmij markdown code fences
+  t = t.replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'').trim();
+  // 2) całość?
+  let r = _tryParseJSON(t); if(r) return r;
+  // 3) wytnij od pierwszego `{`
+  const start = t.indexOf('{');
+  if(start<0) throw new Error('Brak JSON w odpowiedzi AI: '+t.slice(0,150));
+  const base = t.slice(start);
+  // 4) backward scan: na każdej granicy (`}`,`]`,`,`) i ostatniej pozycji próbuj zamknąć i sparsować.
+  //    LIFO close + opcjonalne domknięcie urwanego stringa.
+  for(let pos=base.length; pos>=1; pos--){
+    if(pos<base.length){
+      const c = base[pos-1];
+      if(c!=='}' && c!==']' && c!==',') continue;
+    }
+    const candidate = _closeOpenStructures(base.slice(0,pos).replace(/,\s*$/,''));
+    const parsed = _tryParseJSON(candidate);
+    if(parsed) return parsed;
+  }
+  throw new Error('AI zwróciło niepełny JSON (zbyt długi opis?). Spróbuj krótszego: '+t.slice(0,150));
 }
 
 async function sendToAI(prompt, imageBase64){
-  const text = await _aiCallWithFallback(prompt, imageBase64, 512);
+  const text = await _aiCallWithFallback(prompt, imageBase64, 1024);
   const parsed = _extractJSON(text);
   return {
     kalorie: Number(parsed.kalorie)||0,
@@ -2423,7 +2462,7 @@ async function analyzeWorkout(){
 }
 // helper — wysłanie tekstu do AI z dowolnym JSON-em
 async function sendAIRaw(prompt){
-  const text = await _aiCallWithFallback(prompt, null, 1500);
+  const text = await _aiCallWithFallback(prompt, null, 4096);
   return _extractJSON(text);
 }
 function startWorkout(){
