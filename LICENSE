@@ -1,6 +1,20 @@
-MIT License
+============================================================
+KAWCIA — Licencja (dual licensing)
+============================================================
 
-Copyright (c) 2026 KAWCIA
+Ten projekt ma DWIE osobne licencje:
+
+  1. KOD ŹRÓDŁOWY (index.html, README.md, itd.) — licencja MIT (poniżej)
+  2. IKONA APLIKACJI (zdjęcie twarzy w pliku index.html, osadzone
+     jako base64 w tagach <link rel="apple-touch-icon">,
+     <link rel="icon"> oraz w manifest icons[]) — All Rights Reserved
+     (patrz sekcja na końcu pliku)
+
+============================================================
+1. MIT License (dotyczy KODU)
+============================================================
+
+Copyright (c) 2026 <TWOJE_IMIE>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +33,55 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+WAŻNE: powyższa licencja MIT NIE obejmuje ikony aplikacji (zdjęcia twarzy).
+Patrz sekcja 2 poniżej.
+
+============================================================
+2. Ikona aplikacji — All Rights Reserved
+============================================================
+
+Copyright (c) 2026 <TWOJE_IMIE>. Wszelkie prawa zastrzeżone.
+
+Zdjęcie przedstawiające twarz autora ("Ikona"), osadzone w pliku
+index.html jako dane base64 w tagach:
+
+  - <link rel="apple-touch-icon" ...>
+  - <link rel="icon" ...>
+  - obiekt manifestu PWA (icons[0] i icons[1])
+
+jest utworem chronionym prawem autorskim i NIE jest objęte licencją MIT
+ani żadną inną otwartą licencją.
+
+ZABRONIONE bez uprzedniej pisemnej zgody autora jest w szczególności:
+
+  (a) kopiowanie, powielanie, dystrybucja lub publikacja Ikony w jakiejkolwiek
+      formie (cyfrowej lub fizycznej), w tym jako część forka, kopii,
+      pochodnej tego projektu lub w innych projektach;
+  (b) używanie Ikony jako wizerunku, awatara, znaku graficznego, logo lub
+      identyfikatora innej osoby, marki, produktu lub usługi;
+  (c) modyfikacja, retusz, generowanie deepfake'ów, treningu modeli
+      uczenia maszynowego lub jakichkolwiek pochodnych prac na bazie Ikony;
+  (d) używanie Ikony w celach komercyjnych, reklamowych, marketingowych
+      lub satyrycznych;
+  (e) usuwanie tej informacji o prawach autorskich z pliku LICENSE lub
+      z innych miejsc projektu.
+
+DOZWOLONE bez dodatkowej zgody jest jedynie:
+
+  (i) używanie Ikony w jej oryginalnej, niezmodyfikowanej postaci jako
+      wyświetlanej ikony w działającej, nieforkowanej kopii tej aplikacji
+      uruchamianej lokalnie przez użytkownika końcowego dla potrzeb
+      osobistych (np. po dodaniu PWA do ekranu głównego telefonu).
+
+Korzystanie z forka kodu jest dozwolone na warunkach licencji MIT, ale
+przed publikacją lub redystrybucją forka NALEŻY usunąć lub podmienić
+Ikonę (zdjęcie twarzy) na własną grafikę. Pozostawienie oryginalnej Ikony
+w forku rozpowszechnianym publicznie stanowi naruszenie praw autorskich
+i podlega ochronie zgodnie z ustawą o prawie autorskim i prawach pokrewnych
+(Dz.U. 1994 Nr 24 poz. 83 z późn. zm.) oraz właściwymi przepisami
+międzynarodowymi.
+
+Kontakt w sprawie zezwoleń: <TWÓJ_E-MAIL_LUB_GITHUB>
+
+============================================================
