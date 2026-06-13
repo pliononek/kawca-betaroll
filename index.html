@@ -972,6 +972,10 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
     <span>Historia</span>
   </button>
+  <button class="nav-btn" data-testid="nav-achievements" data-screen="achievements" onclick="showScreen('achievements')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.5 13l1.5 8-5-3-5 3 1.5-8"/></svg>
+    <span>Odznaki</span>
+  </button>
   <button class="nav-btn" data-testid="nav-settings" data-screen="settings" onclick="showScreen('settings')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     <span>Ustawienia</span>
@@ -1251,7 +1255,7 @@ function showScreen(name){
   const el = document.getElementById('screen-'+name);
   if(el){ el.classList.add('active'); currentScreen=name; window.scrollTo(0,0); }
   // map screens to nav tabs
-  const navMap = {home:'home',add:'home',workout:'workout','workout-create':'workout','workout-active':'workout','workout-detail':'workout','exercise-lib':'workout',history:'history',settings:'settings'};
+  const navMap = {home:'home',add:'home',workout:'workout','workout-create':'workout','workout-active':'workout','workout-detail':'workout','exercise-lib':'workout',history:'history',achievements:'achievements',settings:'settings'};
   const navActive = navMap[name] || name;
   document.querySelectorAll('.nav-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.screen===navActive);
@@ -2127,7 +2131,7 @@ function refreshDrawer(){
   document.getElementById('dMF').textContent = Math.round(tot.f)+'g';
   document.getElementById('dMC').textContent = Math.round(tot.c)+'g';
   // active nav
-  const navMap = {home:'home',workout:'workout','exercise-lib':'exercise-lib',history:'history',settings:'settings'};
+  const navMap = {home:'home',workout:'workout','exercise-lib':'exercise-lib',history:'history',achievements:'achievements',settings:'settings'};
   const cur = navMap[currentScreen] || (currentScreen.startsWith('workout')?'workout':currentScreen);
   document.querySelectorAll('.drawer-nav-item').forEach(el=>el.classList.toggle('active', el.dataset.screen===cur));
   updateDrawerActiveTheme();
