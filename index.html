@@ -265,6 +265,75 @@
   /* ===== greeting ===== */
   .greeting{font-size:13px;color:var(--accent-text);font-weight:600;margin-bottom:2px}
 
+  /* ===== active workout card (na ekranie Trening) ===== */
+  .active-wk-card{position:relative;background:linear-gradient(135deg,var(--accent-start),var(--accent-end));border-radius:20px;padding:18px 20px;margin-bottom:18px;box-shadow:0 0 30px var(--glow);animation:wkPulseGlow 2.4s ease-in-out infinite;overflow:hidden}
+  @keyframes wkPulseGlow{0%,100%{box-shadow:0 0 28px var(--glow)}50%{box-shadow:0 0 50px var(--glow)}}
+  .active-wk-label{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.9)}
+  .active-wk-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:wkBlink 1.4s ease-in-out infinite}
+  @keyframes wkBlink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+  .active-wk-name{font-size:19px;font-weight:800;color:#fff;margin:6px 0 2px;letter-spacing:-.3px}
+  .active-wk-meta{display:flex;gap:14px;font-size:12px;color:rgba(255,255,255,.85);margin-bottom:14px;font-weight:600;font-variant-numeric:tabular-nums}
+  .active-wk-meta b{color:#fff;font-weight:800}
+  .active-wk-actions{display:flex;gap:8px}
+  .active-wk-resume{flex:1;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);color:#fff;padding:12px;border-radius:12px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,background .2s}
+  .active-wk-resume:active{transform:scale(.96);background:rgba(255,255,255,.28)}
+  .active-wk-discard{background:rgba(0,0,0,.25);color:#fff;padding:12px 14px;border-radius:12px;font-size:13px;font-weight:600;transition:transform .12s,background .2s}
+  .active-wk-discard:active{transform:scale(.94);background:rgba(0,0,0,.4)}
+
+  /* ===== floating pill (inne ekrany) ===== */
+  .active-pill{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%) translateY(-150%);background:linear-gradient(135deg,var(--accent-start),var(--accent-end));color:#fff;padding:8px 16px 8px 12px;border-radius:999px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;z-index:60;box-shadow:0 8px 24px var(--glow);transition:transform .3s ease-out;cursor:pointer}
+  .active-pill.show{transform:translateX(-50%) translateY(0)}
+  .active-pill:active{transform:translateX(-50%) translateY(0) scale(.95)}
+  .active-pill-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:wkBlink 1.4s ease-in-out infinite}
+  .active-pill-time{font-variant-numeric:tabular-nums;background:rgba(0,0,0,.2);padding:3px 8px;border-radius:999px;font-size:12px}
+
+  /* ===== workout templates ===== */
+  .tpl-chips{display:flex;gap:10px;overflow-x:auto;padding:4px 4px 14px;scrollbar-width:none}
+  .tpl-chips::-webkit-scrollbar{display:none}
+  .tpl-chip{flex-shrink:0;min-width:160px;background:rgba(19,19,26,.7);border:1px solid var(--accent-border);border-radius:16px;padding:14px;text-align:left;transition:transform .12s,box-shadow .2s}
+  .tpl-chip:active{transform:scale(.97);box-shadow:0 0 20px var(--glow)}
+  .tpl-chip-icon{font-size:22px;margin-bottom:6px}
+  .tpl-chip-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tpl-chip-meta{font-size:11px;color:var(--accent-text);font-weight:600}
+
+  /* ===== strength chart (SVG sparkline) ===== */
+  .strength-chart{background:rgba(255,255,255,.03);border-radius:12px;padding:14px;margin:10px 0}
+  .strength-chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px}
+  .strength-chart-title{color:#7a7a8c;font-weight:600;text-transform:uppercase;letter-spacing:.6px;font-size:11px}
+  .strength-chart-stat{color:var(--accent-text-2);font-weight:700}
+  .strength-chart svg{display:block;width:100%;height:80px}
+  .sc-line{stroke:url(#strengthGrad);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .sc-area{fill:url(#strengthGradFill);opacity:.25}
+  .sc-dot{fill:var(--accent-end);stroke:#fff;stroke-width:1.5}
+  .sc-empty{font-size:12px;color:#5b5b6e;text-align:center;padding:14px 0}
+
+  /* ===== copy workout button ===== */
+  .wk-copy-btn{padding:6px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:var(--accent-text);font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;transition:transform .12s,background .2s}
+  .wk-copy-btn:active{transform:scale(.94);background:var(--accent-soft)}
+  .wk-copy-btn svg{width:12px;height:12px}
+
+  /* ===== achievements ===== */
+  .ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ach-card{background:rgba(19,19,26,.7);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px;text-align:center;position:relative;transition:transform .12s;animation:fadeInLeft .3s ease both}
+  .ach-card.locked{opacity:.45;filter:grayscale(.7)}
+  .ach-card:active{transform:scale(.96)}
+  .ach-icon{font-size:34px;margin-bottom:6px;line-height:1}
+  .ach-name{font-size:13px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:4px}
+  .ach-desc{font-size:11px;color:#7a7a8c;line-height:1.3;min-height:28px}
+  .ach-card.unlocked{border-color:var(--accent-border);box-shadow:0 0 14px var(--glow-soft)}
+  .ach-card.unlocked::after{content:'✓';position:absolute;top:8px;right:10px;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+  .ach-toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:24px;padding:24px 28px;min-width:280px;text-align:center;z-index:170;box-shadow:0 0 80px rgba(251,191,36,.5);transition:transform .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+  .ach-toast.show{transform:translate(-50%,-50%) scale(1)}
+  .ach-toast-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#1a1a00;font-weight:700;margin-bottom:6px;opacity:.7}
+  .ach-toast-icon{font-size:48px;margin:4px 0 8px}
+  .ach-toast-name{font-size:18px;font-weight:800;color:#1a1a00;margin-bottom:4px}
+  .ach-toast-desc{font-size:12px;color:#3a3300;font-weight:600}
+
+  .drawer-ach-row{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;color:#c0c0d0}
+  .drawer-ach-icons{display:flex;gap:4px;flex-wrap:wrap}
+  .drawer-ach-icon{font-size:18px}
+
   /* ===== drawer ===== */
   .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;pointer-events:none;z-index:200;transition:opacity .3s}
   .drawer-overlay.show{opacity:1;pointer-events:auto}
@@ -393,6 +462,14 @@
     <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop id="ringStop1" offset="0%" stop-color="#7c3aed"/>
       <stop id="ringStop2" offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+    <linearGradient id="strengthGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop id="scStop1" offset="0%" stop-color="#7c3aed"/>
+      <stop id="scStop2" offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+    <linearGradient id="strengthGradFill" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop id="scFillStop1" offset="0%" stop-color="#7c3aed" stop-opacity="0.6"/>
+      <stop id="scFillStop2" offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
     </linearGradient>
   </defs>
 </svg>
@@ -625,7 +702,6 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
       Baza ćwiczeń
     </button>
-    <div class="section-title">Ostatnie treningi</div>
     <div id="workoutList" data-testid="workout-list"></div>
   </section>
 
@@ -633,6 +709,10 @@
   <section id="screen-workout-create" class="screen">
     <button class="back-btn" onclick="showScreen('workout')">← Wróć</button>
     <div class="header" style="padding-top:0"><h1>Nowy trening</h1></div>
+
+    <div class="section-title" style="margin-top:0">📋 Gotowe plany</div>
+    <div class="tpl-chips" id="tplChips" data-testid="tpl-chips"></div>
+
     <div class="card">
       <div class="field">
         <label class="label">Nazwa treningu</label>
@@ -719,6 +799,23 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Dodaj własne ćwiczenie
     </button>
+    <div style="height:80px"></div>
+  </section>
+
+  <!-- ============ ACHIEVEMENTS ============ -->
+  <section id="screen-achievements" class="screen">
+    <button class="back-btn" onclick="showScreen('home')">← Wróć</button>
+    <div class="header" style="padding-top:0"><h1>Osiągnięcia</h1></div>
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#7a7a8c;font-weight:700">Zdobyte</div>
+          <div id="achCount" style="font-size:30px;font-weight:800;letter-spacing:-1px" class="gradient-text">0 / 0</div>
+        </div>
+        <div style="font-size:42px">🏅</div>
+      </div>
+    </div>
+    <div class="ach-grid" id="achGrid" data-testid="ach-grid"></div>
     <div style="height:80px"></div>
   </section>
 
@@ -922,6 +1019,7 @@
       <button class="drawer-nav-item" data-screen="workout" data-testid="dn-workout" onclick="drawerNav('workout')"><span class="nav-emoji">💪</span><span>Trening</span></button>
       <button class="drawer-nav-item" data-screen="exercise-lib" data-testid="dn-lib" onclick="drawerNav('exercise-lib')"><span class="nav-emoji">📚</span><span>Baza ćwiczeń</span></button>
       <button class="drawer-nav-item" data-screen="history" data-testid="dn-history" onclick="drawerNav('history')"><span class="nav-emoji">📊</span><span>Historia</span></button>
+      <button class="drawer-nav-item" data-screen="achievements" data-testid="dn-ach" onclick="drawerNav('achievements')"><span class="nav-emoji">🏅</span><span>Osiągnięcia</span></button>
       <button class="drawer-nav-item" data-screen="settings" data-testid="dn-settings" onclick="drawerNav('settings')"><span class="nav-emoji">⚙️</span><span>Ustawienia</span></button>
     </div>
     <div class="drawer-sep"></div>
@@ -1018,6 +1116,14 @@
   <div class="pr-flash-card">🏆 Nowy rekord osobisty!</div>
 </div>
 
+<!-- ============ ACHIEVEMENT TOAST ============ -->
+<div class="ach-toast" id="achToast" data-testid="ach-toast">
+  <div class="ach-toast-label">Nowe osiągnięcie</div>
+  <div class="ach-toast-icon" id="achToastIcon">🏅</div>
+  <div class="ach-toast-name" id="achToastName">Tytuł</div>
+  <div class="ach-toast-desc" id="achToastDesc">Opis</div>
+</div>
+
 <!-- ============ WELCOME ============ -->
 <div class="welcome" id="welcomeScreen" data-testid="welcome-screen">
   <div class="welcome-card">
@@ -1030,6 +1136,13 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </button>
   </div>
+</div>
+
+<!-- ============ ACTIVE WORKOUT PILL (poza ekranem Trening) ============ -->
+<div class="active-pill" id="activePill" data-testid="active-pill" onclick="showScreen('workout-active')">
+  <span class="active-pill-dot"></span>
+  <span>Trening trwa</span>
+  <span class="active-pill-time" id="activePillTime">0:00</span>
 </div>
 
 <div class="toast-wrap" id="toastWrap"></div>
@@ -1150,9 +1263,11 @@ function showScreen(name){
   if(name==='add-photo') resetPhotoForm();
   if(name==='add-text') document.getElementById('textDesc').value='';
   if(name==='workout') renderWorkoutHome();
-  if(name==='workout-create') renderWorkoutCreate();
+  if(name==='workout-create') { renderWorkoutCreate(); renderTemplates(); }
   if(name==='workout-active') renderActiveWorkout();
   if(name==='exercise-lib') renderExerciseLib();
+  if(name==='achievements') renderAchievementsScreen();
+  if(currentWorkout) updateLiveTimers();
   closeDrawer();
 }
 
@@ -1683,6 +1798,7 @@ function addMeal(meal){
     ...meal
   });
   setMeals(meals);
+  checkAchievements();
 }
 
 function showSuccess(){
@@ -1880,12 +1996,12 @@ function getTheme(){ return localStorage.getItem(LS.theme) || 'purple'; }
 function applyTheme(name){
   if(!THEME_STOPS[name]) name='purple';
   document.documentElement.setAttribute('data-theme', name);
-  // SVG ring gradient stops (CSS vars unreliable inside <defs> on Safari)
+  // SVG gradient stops (CSS vars unreliable inside <defs> on Safari)
   const [s1,s2] = THEME_STOPS[name];
-  const a = document.getElementById('ringStop1');
-  const b = document.getElementById('ringStop2');
-  if(a) a.setAttribute('stop-color', s1);
-  if(b) b.setAttribute('stop-color', s2);
+  ['ringStop1','scStop1','scFillStop1'].forEach(id=>{ const el=document.getElementById(id); if(el) el.setAttribute('stop-color', s1); });
+  ['ringStop2','scStop2'].forEach(id=>{ const el=document.getElementById(id); if(el) el.setAttribute('stop-color', s2); });
+  const fillStop2 = document.getElementById('scFillStop2');
+  if(fillStop2) fillStop2.setAttribute('stop-color', s1);
   // theme meta color
   const tc = document.querySelector('meta[name="theme-color"]');
   if(tc) tc.setAttribute('content','#0a0a0f');
@@ -2245,6 +2361,7 @@ function openExDetail(id){
       ${e.pomocnicze&&e.pomocnicze.length?`<strong style="color:#fff">Pomocnicze:</strong> ${e.pomocnicze.map(g=>EX_GROUP_LABEL[g]||g).join(', ')}`:''}
     </div>
     ${pr?`<div class="modal-preview"><div>🏆 Twój rekord</div><strong>${pr.weight} kg × ${pr.reps}</strong></div>`:''}
+    ${renderStrengthChart(e.nazwa)}
     ${history.length?`<div style="margin-bottom:14px">
       <div class="section-title" style="margin:0 0 8px">Ostatnie podejścia</div>
       ${history.map(h=>`<div style="font-size:12px;color:#a0a0b0;padding:4px 0">${h.date} · ${h.sets.map(s=>`${s.reps}×${s.weight}kg`).join(' / ')}</div>`).join('')}
@@ -2319,11 +2436,47 @@ let workoutTimerInterval = null;
 
 function renderWorkoutHome(){
   const list = document.getElementById('workoutList');
+  // 1) karta aktualnie trwającego treningu na górze
+  list.innerHTML = '';
+  if(currentWorkout){
+    const setsCnt = currentWorkout.exercises.reduce((a,e)=>a+(e.sets||[]).filter(s=>s.done).length,0);
+    const exCnt = currentWorkout.exercises.length;
+    const elapsed = workoutStartTs ? Math.floor((Date.now()-workoutStartTs)/1000) : 0;
+    const card = document.createElement('div');
+    card.className='active-wk-card';
+    card.setAttribute('data-testid','active-wk-card');
+    card.innerHTML = `
+      <div class="active-wk-label"><span class="active-wk-dot"></span>Trening trwa</div>
+      <div class="active-wk-name">${escapeHtml(currentWorkout.name||'Trening')}</div>
+      <div class="active-wk-meta">
+        <span>⏱ <b class="wk-timer">${fmtDur(elapsed)}</b></span>
+        <span>💪 <b>${exCnt}</b> ćwicz.</span>
+        <span>✓ <b>${setsCnt}</b> serii</span>
+      </div>
+      <div class="active-wk-actions">
+        <button class="active-wk-resume" data-testid="resume-workout-btn" onclick="showScreen('workout-active')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></svg>
+          Wróć do treningu
+        </button>
+        <button class="active-wk-discard" data-testid="discard-active-btn" onclick="if(confirm('Przerwać trening bez zapisu?')){stopWorkout();renderWorkoutHome()}">
+          Przerwij
+        </button>
+      </div>
+    `;
+    list.appendChild(card);
+  }
+  // 2) lista zapisanych treningów (oryginał, ale podmieniam appendChild zamiast innerHTML=)
   const wks = getWorkouts().slice().sort((a,b)=>b.ts-a.ts);
-  list.innerHTML='';
-  if(wks.length===0){
+  if(wks.length===0 && !currentWorkout){
     list.innerHTML='<div class="empty">Brak zapisanych treningów. Stwórz pierwszy!</div>';
     return;
+  }
+  if(wks.length>0){
+    const title = document.createElement('div');
+    title.className='section-title';
+    title.style.margin='8px 4px 10px';
+    title.textContent = currentWorkout ? 'Ostatnie zapisane' : 'Ostatnie treningi';
+    list.appendChild(title);
   }
   wks.forEach((w,i)=>{
     const el = document.createElement('div');
@@ -2338,9 +2491,15 @@ function renderWorkoutHome(){
           <div class="workout-card-name">${escapeHtml(w.name||'Trening')}</div>
           <div class="workout-card-date">${fmtDate(w.date)} · ${fmtDur(w.duration||0)}</div>
         </div>
-        <button class="meal-del" onclick="event.stopPropagation();deleteWorkout('${w.id}')" aria-label="Usuń">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
-        </button>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="wk-copy-btn" data-testid="copy-${w.id}" onclick="event.stopPropagation();copyWorkoutToDraft('${w.id}')" aria-label="Powtórz">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Powtórz
+          </button>
+          <button class="meal-del" onclick="event.stopPropagation();deleteWorkout('${w.id}')" aria-label="Usuń">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
       </div>
       <div class="workout-card-stats">
         <span>💪 ${(w.exercises||[]).length} ćwicz.</span>
@@ -2476,16 +2635,16 @@ function startWorkout(){
   workoutStartTs = Date.now();
   saveActiveWorkout();
   workoutDraft = null;
+  ensureLiveTimer();
   showScreen('workout-active');
 }
 function saveActiveWorkout(){
-  // lekki cache w sessionStorage
   try{ sessionStorage.setItem('cw', JSON.stringify({w:currentWorkout, ts:workoutStartTs})); }catch(e){}
 }
 function loadActiveWorkout(){
   try{
     const v = JSON.parse(sessionStorage.getItem('cw'));
-    if(v && v.w){ currentWorkout = v.w; workoutStartTs = v.ts||Date.now(); }
+    if(v && v.w){ currentWorkout = v.w; workoutStartTs = v.ts||Date.now(); ensureLiveTimer(); }
   }catch(e){}
 }
 function stopWorkout(){
@@ -2493,17 +2652,38 @@ function stopWorkout(){
   currentWorkout=null; workoutStartTs=0;
   sessionStorage.removeItem('cw');
   stopRestTimer(true);
+  document.getElementById('activePill').classList.remove('show');
+}
+function ensureLiveTimer(){
+  // globalny interval — działa nawet poza ekranem treningu, żeby pill miał aktualny czas
+  if(workoutTimerInterval) return;
+  if(!currentWorkout) return;
+  workoutTimerInterval = setInterval(updateLiveTimers, 500);
+  updateLiveTimers();
 }
 function renderActiveWorkout(){
   if(!currentWorkout){ showScreen('workout'); return; }
   document.getElementById('wkActiveName').textContent = currentWorkout.name;
-  // start interval
   if(workoutTimerInterval) clearInterval(workoutTimerInterval);
-  workoutTimerInterval = setInterval(()=>{
-    const s = Math.floor((Date.now()-workoutStartTs)/1000);
-    document.getElementById('wkActiveTimer').textContent = fmtDur(s);
-  }, 500);
+  // jeden interval — aktualizuje WSZYSTKIE elementy ze stoperem (.wk-timer i sam wkActiveTimer)
+  workoutTimerInterval = setInterval(updateLiveTimers, 500);
+  updateLiveTimers();
   renderActiveExercises();
+}
+function updateLiveTimers(){
+  if(!currentWorkout || !workoutStartTs){
+    document.getElementById('activePill').classList.remove('show');
+    return;
+  }
+  const s = Math.floor((Date.now()-workoutStartTs)/1000);
+  const txt = fmtDur(s);
+  const at = document.getElementById('wkActiveTimer');
+  if(at) at.textContent = txt;
+  document.querySelectorAll('.wk-timer').forEach(el=>el.textContent=txt);
+  document.getElementById('activePillTime').textContent = txt;
+  // pokazuj pill tylko poza ekranami treningu
+  const onWk = currentScreen==='workout-active' || currentScreen==='workout';
+  document.getElementById('activePill').classList.toggle('show', !onWk);
 }
 function renderActiveExercises(){
   const wrap = document.getElementById('wkActiveList');
@@ -2588,7 +2768,7 @@ function toggleSetDone(exi,si){
 /* =================== PR =================== */
 function prKey(name){ return LS.prPrefix + normalize(name).replace(/[^a-z0-9]+/g,'_'); }
 function getPR(name){ try{return JSON.parse(localStorage.getItem(prKey(name)))||null}catch(e){return null} }
-function setPR(name, val){ localStorage.setItem(prKey(name), JSON.stringify(val)); }
+function setPR(name, val){ localStorage.setItem(prKey(name), JSON.stringify(val)); checkAchievements(); }
 function flashPR(){
   const el = document.getElementById('prFlash');
   el.classList.add('show');
@@ -2721,7 +2901,243 @@ function saveCompletedWorkout(){
     confetti({particleCount:120, spread:90, origin:{y:0.6}, colors:['#7c3aed','#db2777','#22c55e','#fbbf24']});
   }
   toast('🎉 Trening zapisany!','success');
+  checkAchievements();
   setTimeout(()=>showScreen('workout'), 500);
+}
+
+/* =================== WORKOUT TEMPLATES =================== */
+const WORKOUT_TEMPLATES = [
+  {id:'ppl_push', name:'PPL: Push', icon:'💪', desc:'klatka/barki/triceps', exercises:[
+    {nazwa:'Wyciskanie sztangi na ławce płaskiej', grupy:['klatka'], emoji:'💪'},
+    {nazwa:'Wyciskanie hantli na ławce skośnej', grupy:['klatka'], emoji:'💪'},
+    {nazwa:'Military press', grupy:['barki'], emoji:'🎯'},
+    {nazwa:'Wznosy bokiem', grupy:['barki'], emoji:'🎯'},
+    {nazwa:'Pushdown na wyciągu', grupy:['triceps'], emoji:'💪'},
+    {nazwa:'French press', grupy:['triceps'], emoji:'💪'}
+  ]},
+  {id:'ppl_pull', name:'PPL: Pull', icon:'🔙', desc:'plecy/biceps', exercises:[
+    {nazwa:'Martwy ciąg', grupy:['plecy'], emoji:'🔙'},
+    {nazwa:'Podciąganie na drążku', grupy:['plecy'], emoji:'🔙'},
+    {nazwa:'Wiosłowanie sztangą w opadzie', grupy:['plecy'], emoji:'🔙'},
+    {nazwa:'Pulldown (ściąganie na wyciągu)', grupy:['plecy'], emoji:'🔙'},
+    {nazwa:'Face pull', grupy:['plecy'], emoji:'🔙'},
+    {nazwa:'Uginanie sztangi', grupy:['biceps'], emoji:'💪'},
+    {nazwa:'Uginanie młotkowe', grupy:['biceps'], emoji:'💪'}
+  ]},
+  {id:'ppl_legs', name:'PPL: Legs', icon:'🦵', desc:'nogi/pośladki/łydki', exercises:[
+    {nazwa:'Przysiad ze sztangą', grupy:['nogi'], emoji:'🦵'},
+    {nazwa:'Romanian deadlift', grupy:['nogi'], emoji:'🦵'},
+    {nazwa:'Leg press (suwnica)', grupy:['nogi'], emoji:'🦵'},
+    {nazwa:'Uginanie nóg leżąc (leg curl)', grupy:['nogi'], emoji:'🦵'},
+    {nazwa:'Hip thrust', grupy:['posladki'], emoji:'🍑'},
+    {nazwa:'Wspięcia na palce stojąc', grupy:['lydki'], emoji:'🦵'}
+  ]},
+  {id:'fbw_5x5', name:'Full Body 5×5', icon:'🏋️', desc:'siła, 5 ćwiczeń', exercises:[
+    {nazwa:'Przysiad ze sztangą', grupy:['nogi'], emoji:'🦵', sugerowane_serie:5, sugerowane_powt:5},
+    {nazwa:'Wyciskanie sztangi na ławce płaskiej', grupy:['klatka'], emoji:'💪', sugerowane_serie:5, sugerowane_powt:5},
+    {nazwa:'Wiosłowanie sztangą w opadzie', grupy:['plecy'], emoji:'🔙', sugerowane_serie:5, sugerowane_powt:5},
+    {nazwa:'Military press', grupy:['barki'], emoji:'🎯', sugerowane_serie:5, sugerowane_powt:5},
+    {nazwa:'Martwy ciąg', grupy:['plecy'], emoji:'🔙', sugerowane_serie:1, sugerowane_powt:5}
+  ]},
+  {id:'upper', name:'Upper Body', icon:'💪', desc:'cała góra ciała', exercises:[
+    {nazwa:'Wyciskanie sztangi na ławce płaskiej', grupy:['klatka'], emoji:'💪'},
+    {nazwa:'Wiosłowanie hantlem jednorącz', grupy:['plecy'], emoji:'🔙'},
+    {nazwa:'Wyciskanie hantli siedząc', grupy:['barki'], emoji:'🎯'},
+    {nazwa:'Pulldown (ściąganie na wyciągu)', grupy:['plecy'], emoji:'🔙'},
+    {nazwa:'Uginanie hantli', grupy:['biceps'], emoji:'💪'},
+    {nazwa:'Pushdown na wyciągu', grupy:['triceps'], emoji:'💪'}
+  ]},
+  {id:'lower', name:'Lower Body', icon:'🦵', desc:'cała dół ciała', exercises:[
+    {nazwa:'Przysiad ze sztangą', grupy:['nogi'], emoji:'🦵'},
+    {nazwa:'Romanian deadlift', grupy:['nogi'], emoji:'🦵'},
+    {nazwa:'Wykroki', grupy:['nogi'], emoji:'🦵'},
+    {nazwa:'Prostowanie nóg (leg extension)', grupy:['nogi'], emoji:'🦵'},
+    {nazwa:'Hip thrust', grupy:['posladki'], emoji:'🍑'},
+    {nazwa:'Wspięcia na palce siedząc', grupy:['lydki'], emoji:'🦵'}
+  ]}
+];
+
+function renderTemplates(){
+  const wrap = document.getElementById('tplChips');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  WORKOUT_TEMPLATES.forEach(t=>{
+    const c = document.createElement('button');
+    c.className='tpl-chip';
+    c.setAttribute('data-testid','tpl-'+t.id);
+    c.innerHTML = `
+      <div class="tpl-chip-icon">${t.icon}</div>
+      <div class="tpl-chip-name">${escapeHtml(t.name)}</div>
+      <div class="tpl-chip-meta">${t.exercises.length} ćwicz. · ${t.desc}</div>
+    `;
+    c.onclick = ()=>applyTemplate(t.id);
+    wrap.appendChild(c);
+  });
+}
+function applyTemplate(id){
+  const t = WORKOUT_TEMPLATES.find(x=>x.id===id);
+  if(!t) return;
+  workoutDraft = {name:t.name, exercises: t.exercises.map(e=>({...e, sets:[]}))};
+  document.getElementById('wkName').value = t.name;
+  renderDraftExercises();
+  vibrate(15);
+  toast(`Załadowano plan: ${t.name}`,'success');
+}
+
+/* =================== COPY WORKOUT =================== */
+function copyWorkoutToDraft(id){
+  const w = getWorkouts().find(x=>x.id===id);
+  if(!w){ toast('Nie znaleziono treningu','error'); return; }
+  workoutDraft = {
+    name: w.name + ' (kopia)',
+    exercises: (w.exercises||[]).map(e=>({
+      nazwa: e.nazwa, grupy: e.grupy||[], emoji: e.emoji||'💪',
+      sets: [] // bez serii, użytkownik je wypełnia
+    }))
+  };
+  showScreen('workout-create');
+  setTimeout(()=>document.getElementById('wkName').value = workoutDraft.name, 50);
+  vibrate(15);
+  toast('Trening skopiowany — możesz edytować i ruszać','success');
+}
+
+/* =================== STRENGTH PROGRESSION CHART =================== */
+function getStrengthHistory(name){
+  // dla każdego treningu z tym ćwiczeniem zwróć max weight z wykonanymi seriami
+  const out = [];
+  const ws = getWorkouts().slice().sort((a,b)=>a.ts-b.ts);
+  for(const w of ws){
+    const ex = (w.exercises||[]).find(e=>e.nazwa===name);
+    if(!ex) continue;
+    const done = (ex.sets||[]).filter(s=>s.done && (Number(s.weight)||0)>0);
+    if(done.length===0) continue;
+    const maxW = Math.max(...done.map(s=>Number(s.weight)||0));
+    out.push({ts:w.ts, date:w.date, weight:maxW});
+  }
+  return out;
+}
+function renderStrengthChart(name){
+  const hist = getStrengthHistory(name);
+  if(hist.length<2){
+    return `<div class="strength-chart"><div class="strength-chart-head"><div class="strength-chart-title">📈 Postęp siły</div></div><div class="sc-empty">Trenuj częściej — wykres pojawi się po ≥2 sesjach</div></div>`;
+  }
+  const W = 320, H = 80, P = 6;
+  const min = Math.min(...hist.map(h=>h.weight));
+  const max = Math.max(...hist.map(h=>h.weight));
+  const range = Math.max(1, max-min);
+  const pts = hist.map((h,i)=>{
+    const x = P + (i/(hist.length-1)) * (W - 2*P);
+    const y = H - P - ((h.weight-min)/range) * (H - 2*P);
+    return {x, y, w:h.weight};
+  });
+  const linePath = pts.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
+  const areaPath = linePath + ` L ${pts[pts.length-1].x.toFixed(1)} ${H-P} L ${pts[0].x.toFixed(1)} ${H-P} Z`;
+  const dots = pts.map(p=>`<circle class="sc-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3"/>`).join('');
+  const delta = max-min;
+  const trend = hist[hist.length-1].weight - hist[0].weight;
+  const trendIcon = trend>0?'↗':trend<0?'↘':'→';
+  return `
+    <div class="strength-chart">
+      <div class="strength-chart-head">
+        <div class="strength-chart-title">📈 Postęp siły · ${hist.length} sesji</div>
+        <div class="strength-chart-stat">${trendIcon} ${trend>=0?'+':''}${trend}kg</div>
+      </div>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+        <path class="sc-area" d="${areaPath}"/>
+        <path class="sc-line" d="${linePath}"/>
+        ${dots}
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:#5b5b6e;margin-top:4px">
+        <span>${hist[0].weight}kg · ${fmtDate(hist[0].date)}</span>
+        <span>${hist[hist.length-1].weight}kg · ${fmtDate(hist[hist.length-1].date)}</span>
+      </div>
+    </div>`;
+}
+
+/* =================== ACHIEVEMENTS =================== */
+const ACHIEVEMENTS = [
+  {id:'first_meal', name:'Pierwszy posiłek', icon:'🥗', desc:'Dodaj pierwszy posiłek', check: s=>s.meals.length>=1},
+  {id:'first_workout', name:'Pierwszy trening', icon:'💪', desc:'Zapisz pierwszy trening', check: s=>s.workouts.length>=1},
+  {id:'first_pr', name:'Pierwszy rekord', icon:'🏆', desc:'Pobij pierwszy PR', check: s=>s.prCount>=1},
+
+  {id:'streak_3', name:'3 dni z rzędu', icon:'🔥', desc:'Posiłki przez 3 dni z rzędu', check: s=>s.streak>=3},
+  {id:'streak_7', name:'Tydzień',       icon:'🔥', desc:'7 dni z rzędu', check: s=>s.streak>=7},
+  {id:'streak_30',name:'Miesiąc',       icon:'🌟', desc:'30 dni z rzędu', check: s=>s.streak>=30},
+
+  {id:'wk_5',     name:'Pięciu wojowników', icon:'⚔️', desc:'5 zapisanych treningów', check: s=>s.workouts.length>=5},
+  {id:'wk_25',    name:'Stały bywalec',     icon:'🥇', desc:'25 treningów', check: s=>s.workouts.length>=25},
+  {id:'wk_100',   name:'Setka',             icon:'💯', desc:'100 treningów', check: s=>s.workouts.length>=100},
+
+  {id:'pr_5',     name:'Bestia siły',  icon:'🦍', desc:'5 rekordów osobistych', check: s=>s.prCount>=5},
+  {id:'pr_10',    name:'Niezniszczalny', icon:'👑', desc:'10 rekordów osobistych', check: s=>s.prCount>=10},
+
+  {id:'vol_1000', name:'1000 kg',     icon:'🏋️', desc:'Łączny wolumen 1 000 kg', check: s=>s.totalVol>=1000},
+  {id:'vol_10000',name:'10 000 kg',   icon:'🚀', desc:'Łączny wolumen 10 000 kg', check: s=>s.totalVol>=10000},
+
+  {id:'meal_50',  name:'50 posiłków',  icon:'🍽️', desc:'Zapisz 50 posiłków', check: s=>s.meals.length>=50},
+  {id:'meal_200', name:'200 posiłków', icon:'🍴', desc:'Zapisz 200 posiłków', check: s=>s.meals.length>=200}
+];
+const LS_ACH = 'achievements_unlocked';
+function getUnlockedAch(){ try{return JSON.parse(localStorage.getItem(LS_ACH))||{}}catch(e){return{}} }
+function setUnlockedAch(m){ localStorage.setItem(LS_ACH, JSON.stringify(m)); }
+function buildAchStats(){
+  const meals = getMeals();
+  const workouts = getWorkouts();
+  // PR count = liczba kluczy pr_* w localStorage
+  let prCount = 0;
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith(LS.prPrefix)) prCount++;
+  }
+  const totalVol = workouts.reduce((a,w)=>a+(w.exercises||[]).reduce((s,e)=>s+(e.sets||[]).reduce((ss,st)=>ss+(Number(st.reps)||0)*(Number(st.weight)||0),0),0),0);
+  return {meals, workouts, prCount, totalVol, streak: streakDays()};
+}
+function checkAchievements(){
+  const stats = buildAchStats();
+  const unlocked = getUnlockedAch();
+  const newlyUnlocked = [];
+  ACHIEVEMENTS.forEach(a=>{
+    if(!unlocked[a.id] && a.check(stats)){
+      unlocked[a.id] = Date.now();
+      newlyUnlocked.push(a);
+    }
+  });
+  if(newlyUnlocked.length){
+    setUnlockedAch(unlocked);
+    // pokaż po kolei (po ~2s każde)
+    newlyUnlocked.forEach((a,i)=>setTimeout(()=>showAchToast(a), i*2200));
+  }
+}
+function showAchToast(a){
+  document.getElementById('achToastIcon').textContent = a.icon;
+  document.getElementById('achToastName').textContent = a.name;
+  document.getElementById('achToastDesc').textContent = a.desc;
+  const el = document.getElementById('achToast');
+  el.classList.add('show');
+  vibrate([60,40,60,40,150]);
+  if(window.confetti) confetti({particleCount:60, spread:90, origin:{y:0.5}, colors:['#fbbf24','#f59e0b','#fde047']});
+  setTimeout(()=>el.classList.remove('show'), 2000);
+}
+function renderAchievementsScreen(){
+  const unlocked = getUnlockedAch();
+  const grid = document.getElementById('achGrid');
+  grid.innerHTML = '';
+  let count=0;
+  ACHIEVEMENTS.forEach((a,i)=>{
+    const isOn = !!unlocked[a.id];
+    if(isOn) count++;
+    const c = document.createElement('div');
+    c.className = 'ach-card '+(isOn?'unlocked':'locked');
+    c.style.animationDelay = (i*30)+'ms';
+    c.setAttribute('data-testid','ach-'+a.id);
+    c.innerHTML = `
+      <div class="ach-icon">${a.icon}</div>
+      <div class="ach-name">${escapeHtml(a.name)}</div>
+      <div class="ach-desc">${escapeHtml(a.desc)}</div>
+    `;
+    grid.appendChild(c);
+  });
+  document.getElementById('achCount').textContent = `${count} / ${ACHIEVEMENTS.length}`;
 }
 
 /* =================== INIT =================== */
