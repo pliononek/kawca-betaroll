@@ -1036,7 +1036,7 @@
       </div>
     </div>
   </div>
-  <div class="drawer-version">Kalorie · v1.0.0</div>
+  <div class="drawer-version">Kalorie · v1.0.0 <span style="opacity:.08;cursor:pointer;padding:0 6px;font-size:13px" data-testid="secret-btn" onclick="unlockSecretKunicki()" aria-label="?">🍆</span></div>
 </div>
 
 <!-- ============ REST TIMER ============ -->
@@ -3079,7 +3079,28 @@ const ACHIEVEMENTS = [
   {id:'vol_10000',name:'10 000 kg',   icon:'🚀', desc:'Łączny wolumen 10 000 kg', check: s=>s.totalVol>=10000},
 
   {id:'meal_50',  name:'50 posiłków',  icon:'🍽️', desc:'Zapisz 50 posiłków', check: s=>s.meals.length>=50},
-  {id:'meal_200', name:'200 posiłków', icon:'🍴', desc:'Zapisz 200 posiłków', check: s=>s.meals.length>=200}
+  {id:'meal_200', name:'200 posiłków', icon:'🍴', desc:'Zapisz 200 posiłków', check: s=>s.meals.length>=200},
+
+  // === nowe ===
+  {id:'meal_early', name:'Wcześnik', icon:'🌅', desc:'Posiłek przed 8:00 rano', check: s=>s.meals.some(m=>new Date(m.ts).getHours()<8)},
+  {id:'meal_late',  name:'Nocny marek', icon:'🌙', desc:'Posiłek po 22:00', check: s=>s.meals.some(m=>new Date(m.ts).getHours()>=22)},
+  {id:'protein_200',name:'Bestia białka', icon:'🥩', desc:'200g białka w jeden dzień', check: s=>{
+    const by={}; s.meals.forEach(m=>{ by[m.date]=(by[m.date]||0)+(Number(m.bialko)||0); });
+    return Object.values(by).some(v=>v>=200);
+  }},
+  {id:'workout_60', name:'Maraton', icon:'⏰', desc:'Trening trwający 60+ minut', check: s=>s.workouts.some(w=>(w.duration||0)>=3600)},
+  {id:'workout_snipe', name:'Snajper', icon:'🎯', desc:'Trening z każdą serią ✓ (min. 5 serii)', check: s=>s.workouts.some(w=>{
+    const all=(w.exercises||[]).flatMap(e=>e.sets||[]);
+    return all.length>=5 && all.every(st=>st.done);
+  })},
+  {id:'photo_10',   name:'Fotograf jedzeniowy', icon:'📸', desc:'10 posiłków rozpoznanych ze zdjęcia', check: s=>s.meals.filter(m=>m.emoji==='📸').length>=10},
+  {id:'weekend_warrior', name:'Wojownik weekendu', icon:'🏖️', desc:'Trening w sobotę i niedzielę', check: s=>{
+    const dows = new Set(s.workouts.map(w=>new Date(w.ts).getDay()));
+    return dows.has(0) && dows.has(6);
+  }},
+
+  // === sekretne ===
+  {id:'secret_kunicki', name:'Zawl kunicka koledza na siłce', icon:'🍆', desc:'Znalazłeś sekretny przycisk 😏', secret:true, check: s=>!!localStorage.getItem('secret_kunicki')}
 ];
 const LS_ACH = 'achievements_unlocked';
 function getUnlockedAch(){ try{return JSON.parse(localStorage.getItem(LS_ACH))||{}}catch(e){return{}} }
@@ -3134,14 +3155,24 @@ function renderAchievementsScreen(){
     c.className = 'ach-card '+(isOn?'unlocked':'locked');
     c.style.animationDelay = (i*30)+'ms';
     c.setAttribute('data-testid','ach-'+a.id);
+    const showName = (a.secret && !isOn) ? '???' : a.name;
+    const showDesc = (a.secret && !isOn) ? 'Sekretne osiągnięcie' : a.desc;
+    const showIcon = (a.secret && !isOn) ? '🔒' : a.icon;
     c.innerHTML = `
-      <div class="ach-icon">${a.icon}</div>
-      <div class="ach-name">${escapeHtml(a.name)}</div>
-      <div class="ach-desc">${escapeHtml(a.desc)}</div>
+      <div class="ach-icon">${showIcon}</div>
+      <div class="ach-name">${escapeHtml(showName)}</div>
+      <div class="ach-desc">${escapeHtml(showDesc)}</div>
     `;
     grid.appendChild(c);
   });
   document.getElementById('achCount').textContent = `${count} / ${ACHIEVEMENTS.length}`;
+}
+function unlockSecretKunicki(){
+  if(localStorage.getItem('secret_kunicki')){ toast('Już to masz 😏','info'); return; }
+  localStorage.setItem('secret_kunicki','1');
+  vibrate([60,40,60,40,150]);
+  checkAchievements();
+  if(currentScreen==='achievements') setTimeout(()=>renderAchievementsScreen(), 2400);
 }
 
 /* =================== INIT =================== */
