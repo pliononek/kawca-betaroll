@@ -2043,6 +2043,12 @@ function getModelCandidates(provider){
 function isModelNotFoundError(msg){
   return /\b404\b|not\s*found|not\s*supported|deprecated|does\s*not\s*exist|invalid[_\s-]*model|model_not_found/i.test(msg||'');
 }
+function isRateLimitError(msg){
+  return /\b429\b|quota|rate.?limit|resource.?exhausted|limit.?exceed|too.?many.?request/i.test(msg||'');
+}
+function isGroundingError(msg){
+  return /tools|grounding|search|400|INVALID_ARGUMENT/i.test(msg||'');
+}
 
 // Buduje payload dla Gemini i zwraca surowy tekst odpowiedzi.
 // useGrounding=true włącza Google Search Grounding (model może googlować zamiast zgadywać).
@@ -2070,8 +2076,12 @@ async function _aiCall(model, key, prompt, imageBase64, maxTokens, useGrounding)
   return data.candidates?.[0]?.content?.parts?.[0]?.text||'';
 }
 
-// Loop po modelach: przy 404/„not found" idzie do następnego, cache sukcesu.
-// useGrounding=true → model używa Google Search do weryfikacji danych (np. wartości odżywcze).
+// Loop po modelach z pełnym fallbackiem:
+//   • 404 / model not found → następny model
+//   • 429 / quota exceeded  → następny model (rate limit)
+//   • błąd groundingu       → ponów ten sam model bez groundingu
+//   • inne błędy            → rzuć od razu
+// Cache'ujemy ostatni działający model, żeby kolejne requesty startowały od niego.
 async function _aiCallWithFallback(prompt, imageBase64, maxTokens, useGrounding){
   const s = getSettings();
   const key = s.keys?.gemini;
@@ -2089,19 +2099,48 @@ async function _aiCallWithFallback(prompt, imageBase64, maxTokens, useGrounding)
       return text;
     } catch(e) {
       lastErr = e;
-      // Jeśli grounding nie jest obsługiwany przez ten model — spróbuj bez niego
-      if(useGrounding && /tools|grounding|search|400/i.test(e.message)){
+      const msg = e.message || '';
+
+      // --- grounding powoduje błąd → ponów bez groundingu ---
+      if(useGrounding && isGroundingError(msg)){
         try {
           const text = await _aiCall(model, key, prompt, imageBase64, maxTokens, false);
           setCachedModel('gemini', model);
           return text;
-        } catch(e2){ lastErr = e2; }
+        } catch(e2){
+          lastErr = e2;
+          // jeśli retry bez groundingu też dał 429/404 → traktuj jak normalny błąd poniżej
+          const msg2 = e2.message || '';
+          if(isRateLimitError(msg2) || isModelNotFoundError(msg2)){
+            if(getCachedModel('gemini')===model) localStorage.removeItem('aimodel_gemini');
+            continue; // następny model
+          }
+          throw e2;
+        }
       }
-      if(!isModelNotFoundError(e.message) && !isModelNotFoundError(lastErr?.message)) throw lastErr||e;
-      if(getCachedModel('gemini')===model) localStorage.removeItem('aimodel_gemini');
+
+      // --- 429 quota / rate limit → następny model ---
+      if(isRateLimitError(msg)){
+        if(getCachedModel('gemini')===model) localStorage.removeItem('aimodel_gemini');
+        continue;
+      }
+
+      // --- 404 / model not found → następny model ---
+      if(isModelNotFoundError(msg)){
+        if(getCachedModel('gemini')===model) localStorage.removeItem('aimodel_gemini');
+        continue;
+      }
+
+      // --- inny błąd (np. zły klucz, sieć) → rzuć od razu ---
+      throw e;
     }
   }
-  throw new Error('Żaden z modeli Gemini nie działa. Ostatni błąd: '+(lastErr?.message||'unknown'));
+  // Wszystkie modele wyczerpane
+  const isQuota = isRateLimitError(lastErr?.message||'');
+  const hint = isQuota
+    ? 'Przekroczono limit zapytań (429). Poczekaj chwilę lub sprawdź quota w Google AI Studio.'
+    : (lastErr?.message||'unknown');
+  throw new Error('Żaden z modeli Gemini nie działa. '+hint);
 }
 
 function _tryParseJSON(s){ try { return JSON.parse(s); } catch(e){ return null; } }
@@ -2229,32 +2268,24 @@ async function sendAiChat(){
     const s = getSettings();
     const apiKey = s.keys?.gemini;
     if(!apiKey){ toast('Brak klucza Gemini w ustawieniach','error'); return; }
-    const model = s.geminiModel || getModelCandidates('gemini')[0] || 'gemini-3.1-flash-lite';
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: aiChatHistory.slice(0,-1).map(m => ({
-            role: m.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: m.content }]
-          })),
-          systemInstruction: {
-            parts: [{ text: 'Jesteś pomocnym asystentem fitness i żywienia. Odpowiadasz po polsku. Masz dostęp do wyszukiwania Google dla dokładności danych o produktach i posiłkach. Używaj aktualnych danych żywieniowych. Gdy użytkownik pyta o konkretny produkt, możesz wyszukać jego dokładne wartości odżywcze.' }]
-          }
-        })
-      }
-    );
-    if(!res.ok){
-      const t = await res.text();
-      throw new Error('AI '+res.status+': '+t.slice(0,250));
-    }
-    const data = await res.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Brak odpowiedzi';
-    aiChatHistory[aiChatHistory.length-1] = {role:'assistant', content:reply};
+
+    // Budujemy pełny prompt z historią konwersacji
+    const systemMsg = 'Jesteś pomocnym asystentem fitness i żywienia. Odpowiadasz po polsku. Gdy użytkownik pyta o konkretny produkt lub posiłek, podaj jego dokładne wartości odżywcze. Bądź konkretny i pomocny.';
+    const historyLines = aiChatHistory.slice(0,-1).map(m =>
+      (m.role === 'user' ? 'Użytkownik' : 'Asystent') + ': ' + m.content
+    ).join('\n');
+    const fullPrompt = systemMsg + '\n\n' + historyLines;
+
+    // Korzystamy z _aiCallWithFallback — pełny fallback między modelami + obsługa groundingu
+    const useGrounding = s.useGrounding === true;
+    const reply = await _aiCallWithFallback(fullPrompt, null, 1024, useGrounding);
+    aiChatHistory[aiChatHistory.length-1] = {role:'assistant', content: reply || 'Brak odpowiedzi'};
   }catch(e){
-    aiChatHistory[aiChatHistory.length-1] = {role:'assistant', content:'Błąd: '+e.message};
+    const msg = e.message || '';
+    const friendly = isRateLimitError(msg)
+      ? 'Przekroczono limit zapytań Gemini (429). Poczekaj chwilę i spróbuj ponownie.'
+      : 'Błąd: ' + msg;
+    aiChatHistory[aiChatHistory.length-1] = {role:'assistant', content: friendly};
   }
   renderAiChatMessages();
 }
