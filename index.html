@@ -912,6 +912,13 @@
       </div>
       <div class="row-toggle">
         <div>
+          <div class="row-toggle-label">Google Search</div>
+          <div style="font-size:11px;color:#5b5b6e;margin-top:2px">Włącza wyszukiwanie Google dla odpowiedzi AI</div>
+        </div>
+        <div class="toggle" id="tgGoogleSearch" onclick="toggleClick(this)"></div>
+      </div>
+      <div class="row-toggle">
+        <div>
           <div class="row-toggle-label">Serper Search zamiast Grounding</div>
           <div style="font-size:11px;color:#5b5b6e;margin-top:2px">Tanie wyszukiwanie Google zamiast drogiego Groundingu</div>
         </div>
@@ -1472,6 +1479,7 @@ function loadSettingsForm(){
   document.getElementById('tgSound').classList.toggle('on', s.restSound!==false);
   document.getElementById('tgVibe').classList.toggle('on', s.restVibe!==false);
   document.getElementById('tgGrounding').classList.toggle('on', s.useGrounding===true);
+  document.getElementById('tgGoogleSearch').classList.toggle('on', s.useGoogleSearch === true);
   document.getElementById('keySerper').value = s.keys?.serper || '';
   document.getElementById('tgSerperSearch').classList.toggle('on', s.useSerperSearch === true);
   const au = localStorage.getItem(LS_AUTO_UPDATE);
@@ -1504,6 +1512,7 @@ function saveSettings(){
     restSound: document.getElementById('tgSound').classList.contains('on'),
     restVibe: document.getElementById('tgVibe').classList.contains('on'),
     useGrounding: document.getElementById('tgGrounding').classList.contains('on'),
+    useGoogleSearch: document.getElementById('tgGoogleSearch').classList.contains('on'),
     useSerperSearch: document.getElementById('tgSerperSearch').classList.contains('on')
   };
   setSettings(s);
