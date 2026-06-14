@@ -910,6 +910,17 @@
         </div>
         <div class="toggle" id="tgGrounding" data-testid="tg-grounding" onclick="toggleClick(this)"></div>
       </div>
+      <div class="row-toggle">
+        <div>
+          <div class="row-toggle-label">Serper Search zamiast Grounding</div>
+          <div style="font-size:11px;color:#5b5b6e;margin-top:2px">Tanie wyszukiwanie Google zamiast drogiego Groundingu</div>
+        </div>
+        <div class="toggle" id="tgSerperSearch" onclick="toggleClick(this)"></div>
+      </div>
+      <div class="field">
+        <label class="label">Klucz API — Serper (wyszukiwanie)</label>
+        <input class="input" id="keySerper" type="password" placeholder="Serper API key…"/>
+      </div>
     </div>
 
     <div class="card">
@@ -1461,6 +1472,8 @@ function loadSettingsForm(){
   document.getElementById('tgSound').classList.toggle('on', s.restSound!==false);
   document.getElementById('tgVibe').classList.toggle('on', s.restVibe!==false);
   document.getElementById('tgGrounding').classList.toggle('on', s.useGrounding===true);
+  document.getElementById('keySerper').value = s.keys?.serper || '';
+  document.getElementById('tgSerperSearch').classList.toggle('on', s.useSerperSearch === true);
   const au = localStorage.getItem(LS_AUTO_UPDATE);
   document.getElementById('tgAutoUpdate').classList.toggle('on', au!=='false');
   const savedVer = localStorage.getItem('cal_currentVersion');
@@ -1480,7 +1493,8 @@ function saveSettings(){
     geminiModel: document.getElementById('geminiModel').value,
     cameraLens: document.getElementById('cameraLens').value,
     keys: {
-      gemini: document.getElementById('keyGemini').value.trim()
+      gemini: document.getElementById('keyGemini').value.trim(),
+      serper: document.getElementById('keySerper').value.trim()
     },
     goalCal: parseInt(document.getElementById('goalCal').value)||2000,
     goalP: parseInt(document.getElementById('goalP').value)||150,
@@ -1489,7 +1503,8 @@ function saveSettings(){
     restDur: parseInt(document.getElementById('restDur').value)||90,
     restSound: document.getElementById('tgSound').classList.contains('on'),
     restVibe: document.getElementById('tgVibe').classList.contains('on'),
-    useGrounding: document.getElementById('tgGrounding').classList.contains('on')
+    useGrounding: document.getElementById('tgGrounding').classList.contains('on'),
+    useSerperSearch: document.getElementById('tgSerperSearch').classList.contains('on')
   };
   setSettings(s);
   vibrate(20);
@@ -1502,7 +1517,7 @@ function clearAllData(){
   const toDel = [];
   for(let i=0;i<localStorage.length;i++){
     const k = localStorage.key(i);
-    if(k && (k.startsWith('cal_') || k.startsWith('pr_') || k==='workouts' || k==='custom_exercises')) toDel.push(k);
+    if(k && (k.startsWith('cal_') || k.startsWith('pr_') || k==='workouts' || k==='custom_exercises' || k.startsWith('serper_'))) toDel.push(k);
   }
   toDel.forEach(k=>localStorage.removeItem(k));
   sessionStorage.removeItem('cw');
@@ -2143,6 +2158,59 @@ async function _aiCallWithFallback(prompt, imageBase64, maxTokens, useGrounding)
   throw new Error('Żaden z modeli Gemini nie działa. '+hint);
 }
 
+async function webSearch(query) {
+  const s = getSettings();
+  const key = s.keys?.serper;
+  if (!key) return null;
+
+  const cacheKey = 'serper_' + btoa(unescape(encodeURIComponent(query))).replace(/=/g, '').slice(0, 32);
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (Date.now() - parsed.ts < 3600000) return parsed.data;
+    } catch {}
+  }
+
+  try {
+    const res = await fetch('https://google.serper.dev/search', {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': key,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ q: query, num: 5, hl: 'pl' })
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const snippets = (data.organic || [])
+      .slice(0, 5)
+      .map(r => `${r.title}: ${r.snippet} (${r.link})`)
+      .join('\n');
+    localStorage.setItem(cacheKey, JSON.stringify({ data: snippets, ts: Date.now() }));
+    return snippets;
+  } catch {
+    return null;
+  }
+}
+
+function buildNutritionSearchQuery(mealName, description, grams) {
+  const base = mealName || description || 'posiłek';
+  const parts = [
+    base,
+    'kalorie',
+    'wartości odżywcze',
+    'białko tłuszcze węglowodany',
+    'na 100g'
+  ];
+  if (grams) parts.push(`${grams}g`);
+  return parts.join(' ');
+}
+
+function isNutritionQuery(text) {
+  return /\b(kalorie|makro|białko|tluszcz|tłuszcz|węglowodan|ile kcal|wartości odżywcze|składniki)\b/i.test(text);
+}
+
 function _tryParseJSON(s){ try { return JSON.parse(s); } catch(e){ return null; } }
 function _closeOpenStructures(s){
   // LIFO stack — zamyka w odwrotnej kolejności otwierania (kluczowe dla zagnieżdżonych struktur)
@@ -2269,16 +2337,20 @@ async function sendAiChat(){
     const apiKey = s.keys?.gemini;
     if(!apiKey){ toast('Brak klucza Gemini w ustawieniach','error'); return; }
 
+    let searchContext = '';
+    if (s.useSerperSearch && s.keys?.serper && isNutritionQuery(text)) {
+      searchContext = await webSearch(text + ' kalorie wartości odżywcze');
+    }
+
     // Budujemy pełny prompt z historią konwersacji
-    const systemMsg = 'Jesteś pomocnym asystentem fitness i żywienia. Odpowiadasz po polsku. Gdy użytkownik pyta o konkretny produkt lub posiłek, podaj jego dokładne wartości odżywcze. Bądź konkretny i pomocny.';
+    const systemMsg = 'Jesteś pomocnym asystentem fitness i żywienia. Odpowiadasz po polsku. Gdy użytkownik pyta o konkretny produkt lub posiłek, podaj jego dokładne wartości odżywcze. Bądź konkretny i pomocny.' +
+      (searchContext ? `\n\nAktualne dane z wyszukiwania:\n${searchContext}` : '');
     const historyLines = aiChatHistory.slice(0,-1).map(m =>
       (m.role === 'user' ? 'Użytkownik' : 'Asystent') + ': ' + m.content
     ).join('\n');
     const fullPrompt = systemMsg + '\n\n' + historyLines;
 
-    // Korzystamy z _aiCallWithFallback — pełny fallback między modelami + obsługa groundingu
-    const useGrounding = s.useGrounding === true;
-    const reply = await _aiCallWithFallback(fullPrompt, null, 1024, useGrounding);
+    const reply = await _aiCallWithFallback(fullPrompt, null, 1024, false);
     aiChatHistory[aiChatHistory.length-1] = {role:'assistant', content: reply || 'Brak odpowiedzi'};
   }catch(e){
     const msg = e.message || '';
@@ -2321,10 +2393,21 @@ async function submitText(){
   if(!name && !desc){ toast('Wpisz nazwę posiłku','error'); vibrate(50); return; }
   const query = name + (desc ? ` — ${desc}` : '');
   const finalName = name || desc.slice(0,80);
-  const prompt = `Oszacuj kalorie i makroskładniki dla: "${query}". Dane żywieniowe bierz z popularnych tabel (np. USDA, OpenFoodFacts). Odpowiedz TYLKO w JSON bez żadnego tekstu: {"kalorie": 000, "bialko": 00, "tluszcze": 00, "weglowodany": 00}`;
+
+  const s = getSettings();
+  let searchContext = '';
+  if (s.useSerperSearch && s.keys?.serper) {
+    const searchQuery = buildNutritionSearchQuery(name, desc, 0);
+    searchContext = await webSearch(searchQuery);
+  }
+
+  const prompt = `Oszacuj kalorie i makroskładniki dla: "${query}". 
+${searchContext ? `Oto aktualne dane z wyszukiwania:\n${searchContext}\n` : 'Dane żywieniowe bierz z popularnych tabel (np. USDA, OpenFoodFacts).'}
+Odpowiedz TYLKO w JSON bez żadnego tekstu: {"kalorie": 000, "bialko": 00, "tluszcze": 00, "weglowodany": 00}`;
+
   document.getElementById('textLoading').style.display='block';
   try{
-    const r = await sendToAI(prompt, null, getSettings().useGrounding===true);
+    const r = await sendToAI(prompt, null, false);
     addMeal({name: finalName.slice(0,80), emoji:'🍽️', ...r});
     document.getElementById('textName').value='';
     document.getElementById('textDesc').value='';
@@ -2390,17 +2473,25 @@ async function submitPhoto(){
 
   let prompt;
   if(grams > 0){
-    // Tryb z gramaturą — AI zwraca wartości na 100g, skalujemy potem
-    prompt = `Rozpoznaj posiłek na zdjęciu i podaj wartości odżywcze NA 100g tego produktu/posiłku. ${nameHint ? `Wskazówka: "${nameHint}".` : ''} Użyj danych żywieniowych z tabel USDA/OpenFoodFacts dla dokładności. Odpowiedz TYLKO w JSON bez żadnego tekstu: {"nazwa": "string", "kalorie": 000, "bialko": 00.0, "tluszcze": 00.0, "weglowodany": 00.0}`;
+    prompt = `Rozpoznaj posiłek na zdjęciu i podaj wartości odżywcze NA 100g tego produktu/posiłku. ${nameHint ? `Wskazówka: "${nameHint}".` : ''}`;
   } else {
-    // Tryb bez gramów — AI szacuje całość
-    prompt = `Rozpoznaj posiłek na zdjęciu i oszacuj kalorie oraz makroskładniki całej widocznej porcji. ${nameHint ? `Wskazówka: "${nameHint}".` : ''} Użyj danych żywieniowych z tabel USDA/OpenFoodFacts. Odpowiedz TYLKO w JSON bez żadnego tekstu: {"nazwa": "string", "kalorie": 000, "bialko": 00.0, "tluszcze": 00.0, "weglowodany": 00.0}`;
+    prompt = `Rozpoznaj posiłek na zdjęciu i oszacuj kalorie oraz makroskładniki całej widocznej porcji. ${nameHint ? `Wskazówka: "${nameHint}".` : ''}`;
   }
+
+  const s = getSettings();
+  let searchContext = '';
+  if (s.useSerperSearch && s.keys?.serper) {
+    const searchQuery = buildNutritionSearchQuery(nameHint || 'posiłek ze zdjęcia', '', grams);
+    searchContext = await webSearch(searchQuery);
+  }
+
+  prompt += `${searchContext ? `\n\nOto aktualne dane z wyszukiwania:\n${searchContext}\n` : ' Użyj danych żywieniowych z tabel USDA/OpenFoodFacts dla dokładności.'}
+Odpowiedz TYLKO w JSON bez żadnego tekstu: {"nazwa": "string", "kalorie": 000, "bialko": 00.0, "tluszcze": 00.0, "weglowodany": 00.0}`;
 
   document.getElementById('photoLoading').style.display='block';
   document.getElementById('photoSubmitBtn').style.display='none';
   try{
-    const raw = await _aiCallWithFallback(prompt, photoBase64, 512, getSettings().useGrounding===true);
+    const raw = await _aiCallWithFallback(prompt, photoBase64, 512, false);
     const parsed = _extractJSON(raw);
     const detectedName = parsed.nazwa || nameHint || 'Posiłek ze zdjęcia';
     let cal, p, f, c;
