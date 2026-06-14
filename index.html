@@ -905,14 +905,10 @@
       </div>
       <div class="row-toggle">
         <div>
-          <div class="row-toggle-label">Google Search</div>
-          <div style="font-size:11px;color:#5b5b6e;margin-top:2px">Włącza wyszukiwanie Google przez Serper API</div>
+          <div class="row-toggle-label">Rozszerzona baza wiedzy</div>
+          <div style="font-size:11px;color:#5b5b6e;margin-top:2px">Wyszukiwanie produktów w Open Food Facts</div>
         </div>
-        <div class="toggle" id="tgGoogleSearch" onclick="toggleClick(this)"></div>
-      </div>
-      <div class="field">
-        <label class="label">Klucz API — Serper</label>
-        <input class="input" id="keySerper" type="password" placeholder="Serper API key…"/>
+        <div class="toggle" id="tgKnowledgeBase" onclick="toggleClick(this)"></div>
       </div>
     </div>
 
@@ -1464,8 +1460,7 @@ function loadSettingsForm(){
   document.getElementById('restDur').value = String(s.restDur||90);
   document.getElementById('tgSound').classList.toggle('on', s.restSound!==false);
   document.getElementById('tgVibe').classList.toggle('on', s.restVibe!==false);
-  document.getElementById('tgGoogleSearch').classList.toggle('on', s.useGoogleSearch === true);
-  document.getElementById('keySerper').value = s.keys?.serper || '';
+  document.getElementById('tgKnowledgeBase').classList.toggle('on', s.useKnowledgeBase === true);
   const au = localStorage.getItem(LS_AUTO_UPDATE);
   document.getElementById('tgAutoUpdate').classList.toggle('on', au!=='false');
   const savedVer = localStorage.getItem('cal_currentVersion');
@@ -1485,8 +1480,7 @@ function saveSettings(){
     geminiModel: document.getElementById('geminiModel').value,
     cameraLens: document.getElementById('cameraLens').value,
     keys: {
-      gemini: document.getElementById('keyGemini').value.trim(),
-      serper: document.getElementById('keySerper').value.trim()
+      gemini: document.getElementById('keyGemini').value.trim()
     },
     goalCal: parseInt(document.getElementById('goalCal').value)||2000,
     goalP: parseInt(document.getElementById('goalP').value)||150,
@@ -1495,7 +1489,7 @@ function saveSettings(){
     restDur: parseInt(document.getElementById('restDur').value)||90,
     restSound: document.getElementById('tgSound').classList.contains('on'),
     restVibe: document.getElementById('tgVibe').classList.contains('on'),
-    useGoogleSearch: document.getElementById('tgGoogleSearch').classList.contains('on')
+    useKnowledgeBase: document.getElementById('tgKnowledgeBase').classList.contains('on')
   };
   setSettings(s);
   vibrate(20);
@@ -1508,7 +1502,7 @@ function clearAllData(){
   const toDel = [];
   for(let i=0;i<localStorage.length;i++){
     const k = localStorage.key(i);
-    if(k && (k.startsWith('cal_') || k.startsWith('pr_') || k==='workouts' || k==='custom_exercises' || k.startsWith('serper_'))) toDel.push(k);
+    if(k && (k.startsWith('cal_') || k.startsWith('pr_') || k==='workouts' || k==='custom_exercises' || k.startsWith('serper_') || k.startsWith('off_'))) toDel.push(k);
   }
   toDel.forEach(k=>localStorage.removeItem(k));
   sessionStorage.removeItem('cw');
@@ -2150,11 +2144,7 @@ async function _aiCallWithFallback(prompt, imageBase64, maxTokens, useGrounding)
 }
 
 async function webSearch(query) {
-  const s = getSettings();
-  const key = s.keys?.serper;
-  if (!key) return null;
-
-  const cacheKey = 'serper_' + btoa(unescape(encodeURIComponent(query))).replace(/=/g, '').slice(0, 32);
+  const cacheKey = 'off_' + btoa(unescape(encodeURIComponent(query))).replace(/=/g, '').slice(0, 32);
   const cached = localStorage.getItem(cacheKey);
   if (cached) {
     try {
@@ -2164,22 +2154,68 @@ async function webSearch(query) {
   }
 
   try {
-    const res = await fetch('https://google.serper.dev/search', {
-      method: 'POST',
-      headers: {
-        'X-API-KEY': key,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ q: query, num: 5, hl: 'pl' })
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const snippets = (data.organic || [])
-      .slice(0, 5)
-      .map(r => `${r.title}: ${r.snippet} (${r.link})`)
-      .join('\n');
-    localStorage.setItem(cacheKey, JSON.stringify({ data: snippets, ts: Date.now() }));
-    return snippets;
+    let url, data;
+    
+    // Sprawdź czy to kod kreskowy (13 cyfr EAN-13)
+    const isBarcode = /^\d{13}$/.test(query.trim());
+    
+    if (isBarcode) {
+      // Bezpośredni lookup po kodzie
+      url = `https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(query.trim())}.json`;
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      data = await res.json();
+      
+      if (data.status !== 1 || !data.product) return null;
+      
+      const p = data.product;
+      const n = p.nutriments || {};
+      const context = [
+        `produkt: ${p.product_name || '—'}`,
+        p.brands ? `marka: ${p.brands}` : '',
+        `kcal/100g: ${Math.round(n['energy-kcal_100g'] || n['energy-kcal'] || (n['energy_100g']?n['energy_100g']/4.184:0)) || 0}`,
+        `białko/100g: ${(n['proteins_100g']||n['proteins']||0).toFixed(1)}g`,
+        `tłuszcze/100g: ${(n['fat_100g']||n['fat']||0).toFixed(1)}g`,
+        `węgle/100g: ${(n['carbohydrates_100g']||n['carbohydrates']||0).toFixed(1)}g`,
+        `kod: ${p.code || query.trim()}`,
+        `ilość: ${p.quantity || '—'}`
+      ].filter(Boolean).join('\n');
+      
+      localStorage.setItem(cacheKey, JSON.stringify({ data: context, ts: Date.now() }));
+      return context;
+    } else {
+      // Wyszukiwanie po nazwie
+      const params = new URLSearchParams({
+        search_terms: query,
+        search_simple: '1',
+        action: 'process',
+        json: '1',
+        page_size: '5'
+      });
+      url = `https://world.openfoodfacts.org/cgi/search.pl?${params}`;
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      data = await res.json();
+      
+      const products = (data.products || []).slice(0, 5);
+      if (products.length === 0) return null;
+      
+      const context = products.map(p => {
+        const n = p.nutriments || {};
+        return [
+          `produkt: ${p.product_name || '—'}`,
+          p.brands ? `marka: ${p.brands}` : '',
+          `kcal/100g: ${Math.round(n['energy-kcal_100g'] || n['energy-kcal'] || (n['energy_100g']?n['energy_100g']/4.184:0)) || 0}`,
+          `białko/100g: ${(n['proteins_100g']||n['proteins']||0).toFixed(1)}g`,
+          `tłuszcze/100g: ${(n['fat_100g']||n['fat']||0).toFixed(1)}g`,
+          `węgle/100g: ${(n['carbohydrates_100g']||n['carbohydrates']||0).toFixed(1)}g`,
+          `kod: ${p.code || '—'}`
+        ].filter(Boolean).join(' · ');
+      }).join('\n\n');
+      
+      localStorage.setItem(cacheKey, JSON.stringify({ data: context, ts: Date.now() }));
+      return context;
+    }
   } catch {
     return null;
   }
@@ -2329,8 +2365,8 @@ async function sendAiChat(){
     if(!apiKey){ toast('Brak klucza Gemini w ustawieniach','error'); return; }
 
     let searchContext = '';
-    if (s.useGoogleSearch && s.keys?.serper && isNutritionQuery(text)) {
-      searchContext = await webSearch(text + ' kalorie wartości odżywcze');
+    if (s.useKnowledgeBase && isNutritionQuery(text)) {
+      searchContext = await webSearch(text);
     }
 
     // Budujemy pełny prompt z historią konwersacji
@@ -2387,7 +2423,7 @@ async function submitText(){
 
   const s = getSettings();
   let searchContext = '';
-  if (s.useGoogleSearch && s.keys?.serper) {
+  if (s.useKnowledgeBase) {
     const searchQuery = buildNutritionSearchQuery(name, desc, 0);
     searchContext = await webSearch(searchQuery);
   }
@@ -2425,11 +2461,6 @@ function resetPhotoForm(){
 function setPhotoGrams(g){
   document.getElementById('photoGrams').value = g;
   document.querySelectorAll('#photoGramsPresets .portion-preset').forEach(b=>b.classList.toggle('active', parseFloat(b.dataset.pg)===g));
-}
-function googleSearchPhoto(){
-  const name = document.getElementById('photoName').value.trim();
-  const query = name ? `kalorie ${name} wartości odżywcze` : 'kalorie posiłek wartości odżywcze';
-  window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
 }
 function onPhotoSelected(e){
   const f = e.target.files?.[0];
@@ -2471,7 +2502,7 @@ async function submitPhoto(){
 
   const s = getSettings();
   let searchContext = '';
-  if (s.useGoogleSearch && s.keys?.serper) {
+  if (s.useKnowledgeBase) {
     const searchQuery = buildNutritionSearchQuery(nameHint || 'posiłek ze zdjęcia', '', grams);
     searchContext = await webSearch(searchQuery);
   }
