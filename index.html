@@ -681,12 +681,7 @@
         <img id="photoPreview" class="preview-img" alt="podgląd"/>
         <div class="field" style="margin-top:10px">
           <label class="label">Nazwa posiłku (opcjonalne)</label>
-          <div style="display:flex;gap:8px">
-            <input class="input" id="photoName" data-testid="photo-name-input" placeholder="np. obiad" style="flex:1"/>
-            <button class="icon-btn" style="flex-shrink:0;background:rgba(66,133,244,0.15);border:1px solid rgba(66,133,244,0.3)" onclick="googleSearchPhoto()" aria-label="Szukaj w Google" title="Szukaj w Google">
-              <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21.35 11.1H12v2.6h5.4c-.23 1.2-.9 2.2-1.9 2.9v2.4h3.1c1.8-1.65 2.85-4.1 2.85-6.95 0-.45-.04-.88-.1-1.28z" fill="#4285F4"/><path d="M12 22c2.73 0 5.02-.9 6.7-2.45l-3.1-2.4c-.9.6-2.05.96-3.6.96-2.77 0-5.12-1.87-5.96-4.4H2.9v2.48A10 10 0 0 0 12 22z" fill="#34A853"/><path d="M6.04 13.71A6.05 6.05 0 0 1 5.72 12c0-.6.1-1.17.3-1.71V7.81H2.9A10.02 10.02 0 0 0 2 12c0 1.61.38 3.14 1.07 4.5l2.97-2.79z" fill="#FBBC05"/><path d="M12 5.88c1.56 0 2.96.54 4.06 1.59l3.04-3.04A10 10 0 0 0 12 2 10 10 0 0 0 2.9 7.81l3.14 2.48C6.88 7.75 9.23 5.88 12 5.88z" fill="#EA4335"/></svg>
-            </button>
-          </div>
+          <input class="input" id="photoName" data-testid="photo-name-input" placeholder="np. obiad"/>
         </div>
         <div class="field">
           <label class="label">Ile gramów ma posiłek? (opcjonalne — dokładniejsza analiza)</label>
@@ -907,6 +902,13 @@
           <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
           <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash Lite (zalecany)</option>
         </select>
+      </div>
+      <div class="row-toggle">
+        <div>
+          <div class="row-toggle-label">Google Search Grounding</div>
+          <div style="font-size:11px;color:#5b5b6e;margin-top:2px">Model googluje dane żywieniowe zamiast zgadywać</div>
+        </div>
+        <div class="toggle" id="tgGrounding" data-testid="tg-grounding" onclick="toggleClick(this)"></div>
       </div>
     </div>
 
@@ -1458,6 +1460,7 @@ function loadSettingsForm(){
   document.getElementById('restDur').value = String(s.restDur||90);
   document.getElementById('tgSound').classList.toggle('on', s.restSound!==false);
   document.getElementById('tgVibe').classList.toggle('on', s.restVibe!==false);
+  document.getElementById('tgGrounding').classList.toggle('on', s.useGrounding===true);
   const au = localStorage.getItem(LS_AUTO_UPDATE);
   document.getElementById('tgAutoUpdate').classList.toggle('on', au!=='false');
   const savedVer = localStorage.getItem('cal_currentVersion');
@@ -1485,7 +1488,8 @@ function saveSettings(){
     goalC: parseInt(document.getElementById('goalC').value)||250,
     restDur: parseInt(document.getElementById('restDur').value)||90,
     restSound: document.getElementById('tgSound').classList.contains('on'),
-    restVibe: document.getElementById('tgVibe').classList.contains('on')
+    restVibe: document.getElementById('tgVibe').classList.contains('on'),
+    useGrounding: document.getElementById('tgGrounding').classList.contains('on')
   };
   setSettings(s);
   vibrate(20);
@@ -2041,13 +2045,22 @@ function isModelNotFoundError(msg){
 }
 
 // Buduje payload dla Gemini i zwraca surowy tekst odpowiedzi.
-// Rzuca Error z czytelnym komunikatem (zawierającym kod HTTP) przy błędach.
-async function _aiCall(model, key, prompt, imageBase64, maxTokens){
+// useGrounding=true włącza Google Search Grounding (model może googlować zamiast zgadywać).
+// Uwaga: grounding jest niezgodny z responseMimeType:'application/json' — JSON parsujemy przez _extractJSON.
+async function _aiCall(model, key, prompt, imageBase64, maxTokens, useGrounding){
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
   const headers = {'Content-Type':'application/json'};
   const parts = [{text:prompt}];
   if(imageBase64) parts.push({inline_data:{mime_type:'image/jpeg', data:imageBase64}});
-  const body = JSON.stringify({contents:[{parts}], generationConfig:{temperature:0.2, responseMimeType:'application/json', maxOutputTokens: maxTokens||512}});
+  const genConfig = {temperature:0.2, maxOutputTokens: maxTokens||512};
+  // responseMimeType nie jest dozwolone razem z groundingiem
+  if(!useGrounding) genConfig.responseMimeType = 'application/json';
+  const payload = {contents:[{parts}], generationConfig: genConfig};
+  if(useGrounding){
+    // Gemini 2.x: googleSearch; starsze modele: google_search_retrieval
+    payload.tools = [{googleSearch:{}}];
+  }
+  const body = JSON.stringify(payload);
   const res = await fetch(endpoint,{method:'POST',headers,body});
   if(!res.ok){
     const t = await res.text();
@@ -2058,7 +2071,8 @@ async function _aiCall(model, key, prompt, imageBase64, maxTokens){
 }
 
 // Loop po modelach: przy 404/„not found" idzie do następnego, cache sukcesu.
-async function _aiCallWithFallback(prompt, imageBase64, maxTokens){
+// useGrounding=true → model używa Google Search do weryfikacji danych (np. wartości odżywcze).
+async function _aiCallWithFallback(prompt, imageBase64, maxTokens, useGrounding){
   const s = getSettings();
   const key = s.keys?.gemini;
   if(!key) throw new Error('Brak klucza API Gemini. Dodaj w Ustawieniach.');
@@ -2070,12 +2084,20 @@ async function _aiCallWithFallback(prompt, imageBase64, maxTokens){
   let lastErr = null;
   for(const model of candidates){
     try {
-      const text = await _aiCall(model, key, prompt, imageBase64, maxTokens);
+      const text = await _aiCall(model, key, prompt, imageBase64, maxTokens, useGrounding);
       setCachedModel('gemini', model);
       return text;
     } catch(e) {
       lastErr = e;
-      if(!isModelNotFoundError(e.message)) throw e;
+      // Jeśli grounding nie jest obsługiwany przez ten model — spróbuj bez niego
+      if(useGrounding && /tools|grounding|search|400/i.test(e.message)){
+        try {
+          const text = await _aiCall(model, key, prompt, imageBase64, maxTokens, false);
+          setCachedModel('gemini', model);
+          return text;
+        } catch(e2){ lastErr = e2; }
+      }
+      if(!isModelNotFoundError(e.message) && !isModelNotFoundError(lastErr?.message)) throw lastErr||e;
       if(getCachedModel('gemini')===model) localStorage.removeItem('aimodel_gemini');
     }
   }
@@ -2127,8 +2149,8 @@ function _extractJSON(text){
   throw new Error('AI zwróciło niepełny JSON (zbyt długi opis?). Spróbuj krótszego: '+t.slice(0,150));
 }
 
-async function sendToAI(prompt, imageBase64){
-  const text = await _aiCallWithFallback(prompt, imageBase64, 1024);
+async function sendToAI(prompt, imageBase64, useGrounding){
+  const text = await _aiCallWithFallback(prompt, imageBase64, 1024, useGrounding);
   const parsed = _extractJSON(text);
   return {
     kalorie: Number(parsed.kalorie)||0,
@@ -2271,7 +2293,7 @@ async function submitText(){
   const prompt = `Oszacuj kalorie i makroskładniki dla: "${query}". Dane żywieniowe bierz z popularnych tabel (np. USDA, OpenFoodFacts). Odpowiedz TYLKO w JSON bez żadnego tekstu: {"kalorie": 000, "bialko": 00, "tluszcze": 00, "weglowodany": 00}`;
   document.getElementById('textLoading').style.display='block';
   try{
-    const r = await sendToAI(prompt, null);
+    const r = await sendToAI(prompt, null, getSettings().useGrounding===true);
     addMeal({name: finalName.slice(0,80), emoji:'🍽️', ...r});
     document.getElementById('textName').value='';
     document.getElementById('textDesc').value='';
@@ -2347,7 +2369,7 @@ async function submitPhoto(){
   document.getElementById('photoLoading').style.display='block';
   document.getElementById('photoSubmitBtn').style.display='none';
   try{
-    const raw = await _aiCallWithFallback(prompt, photoBase64, 512);
+    const raw = await _aiCallWithFallback(prompt, photoBase64, 512, getSettings().useGrounding===true);
     const parsed = _extractJSON(raw);
     const detectedName = parsed.nazwa || nameHint || 'Posiłek ze zdjęcia';
     let cal, p, f, c;
