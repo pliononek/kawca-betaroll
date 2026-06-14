@@ -567,14 +567,14 @@
       <div class="mode-card-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
       </div>
-      <div class="mode-card-text"><h3>Wpisz nazwę</h3><p>AI oszacuje kalorie z opisu</p></div>
+      <div class="mode-card-text"><h3>Wpisz nazwę</h3><p>AI oszacuje kalorie z nazwy lub opisu</p></div>
     </button>
 
     <button class="mode-card" data-testid="mode-photo" onclick="showScreen('add-photo')">
       <div class="mode-card-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
       </div>
-      <div class="mode-card-text"><h3>Zrób zdjęcie</h3><p>AI rozpozna posiłek na fotce</p></div>
+      <div class="mode-card-text"><h3>Zrób zdjęcie</h3><p>AI rozpozna posiłek + wpisz gramy</p></div>
     </button>
 
     <button class="mode-card" data-testid="mode-barcode" onclick="openBarcode()">
@@ -588,7 +588,7 @@
       <div class="mode-card-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="12" y1="10" x2="14" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="12" y1="14" x2="14" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="12" y1="18" x2="14" y2="18"/><line x1="16" y1="18" x2="16" y2="18"/></svg>
       </div>
-      <div class="mode-card-text"><h3>Ręcznie</h3><p>Wpisz kalorie i makro samodzielnie</p></div>
+      <div class="mode-card-text"><h3>Ręcznie</h3><p>Wpisz makro na 100g + ile gramów</p></div>
     </button>
   </section>
 
@@ -601,22 +601,43 @@
         <label class="label">Nazwa posiłku</label>
         <input class="input" id="manName" data-testid="manual-name" placeholder="np. kanapka z serem"/>
       </div>
-      <div class="field">
-        <label class="label">Kalorie (kcal) *</label>
-        <input class="input" id="manCal" data-testid="manual-cal" type="number" inputmode="numeric" placeholder="np. 350"/>
-      </div>
-      <div class="row-3">
+      <div class="section-title" style="margin-top:4px;margin-bottom:8px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#7a7a8c">Wartości na 100g produktu</div>
+      <div class="row-3" style="margin-bottom:4px">
+        <div class="field">
+          <label class="label">Kalorie</label>
+          <input class="input" id="manPer100Cal" data-testid="manual-per100-cal" type="number" inputmode="decimal" placeholder="250" oninput="updateManualPreview()"/>
+        </div>
         <div class="field">
           <label class="label">Białko (g)</label>
-          <input class="input" id="manP" data-testid="manual-p" type="number" inputmode="decimal" placeholder="0"/>
+          <input class="input" id="manPer100P" data-testid="manual-per100-p" type="number" inputmode="decimal" placeholder="10" oninput="updateManualPreview()"/>
         </div>
         <div class="field">
           <label class="label">Tłuszcze (g)</label>
-          <input class="input" id="manF" data-testid="manual-f" type="number" inputmode="decimal" placeholder="0"/>
+          <input class="input" id="manPer100F" data-testid="manual-per100-f" type="number" inputmode="decimal" placeholder="8" oninput="updateManualPreview()"/>
         </div>
+      </div>
+      <div class="row-3">
         <div class="field">
           <label class="label">Węgle (g)</label>
-          <input class="input" id="manC" data-testid="manual-c" type="number" inputmode="decimal" placeholder="0"/>
+          <input class="input" id="manPer100C" data-testid="manual-per100-c" type="number" inputmode="decimal" placeholder="30" oninput="updateManualPreview()"/>
+        </div>
+        <div class="field">
+          <label class="label">Ile gramów?</label>
+          <input class="input" id="manGrams" data-testid="manual-grams" type="number" inputmode="numeric" placeholder="150" oninput="updateManualPreview()"/>
+        </div>
+        <div class="field" style="display:flex;flex-direction:column;justify-content:flex-end">
+          <div class="portion-row" style="margin:0;gap:4px;grid-template-columns:repeat(3,1fr)" id="manGramsPresets">
+            <button class="portion-preset" data-mg="100" style="font-size:10px;padding:6px 4px" onclick="setManGrams(100)">100g</button>
+            <button class="portion-preset" data-mg="150" style="font-size:10px;padding:6px 4px" onclick="setManGrams(150)">150g</button>
+            <button class="portion-preset" data-mg="200" style="font-size:10px;padding:6px 4px" onclick="setManGrams(200)">200g</button>
+          </div>
+        </div>
+      </div>
+      <div id="manualPreviewBox" style="display:none;background:var(--accent-soft);border:1px solid var(--accent-border);border-radius:12px;padding:12px;margin:8px 0">
+        <div style="font-size:11px;color:#7a7a8c;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Podgląd porcji</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong id="manPreviewCal" style="font-size:22px;color:var(--accent-text)">0 kcal</strong>
+          <span id="manPreviewMacros" style="font-size:12px;color:#7a7a8c"></span>
         </div>
       </div>
       <button class="btn btn-primary" data-testid="manual-submit-btn" onclick="submitManual()">
@@ -629,11 +650,15 @@
   <!-- ============ ADD: TEXT ============ -->
   <section id="screen-add-text" class="screen">
     <button class="back-btn" onclick="showScreen('add')">← Wróć</button>
-    <div class="header" style="padding-top:0"><h1>Opisz posiłek</h1></div>
+    <div class="header" style="padding-top:0"><h1>Wpisz nazwę</h1></div>
     <div class="card">
       <div class="field">
-        <label class="label">Co zjadłeś?</label>
-        <textarea class="textarea" id="textDesc" data-testid="text-desc-input" placeholder="np. owsianka z bananem i orzechami, 200g"></textarea>
+        <label class="label">Nazwa posiłku</label>
+        <input class="input" id="textName" data-testid="text-name-input" placeholder="np. Owsianka z bananem"/>
+      </div>
+      <div class="field">
+        <label class="label">Opis (opcjonalnie — AI dokładniej oszacuje)</label>
+        <textarea class="textarea" id="textDesc" data-testid="text-desc-input" placeholder="np. z orzechami i miodem, ok. 300g" style="min-height:80px"></textarea>
       </div>
       <div id="textLoading" style="display:none">
         <div class="skeleton"></div>
@@ -654,9 +679,28 @@
       <input type="file" id="photoInput" data-testid="photo-input" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event)"/>
       <div id="photoPreviewWrap" style="display:none">
         <img id="photoPreview" class="preview-img" alt="podgląd"/>
+        <div class="field" style="margin-top:10px">
+          <label class="label">Nazwa posiłku (opcjonalne)</label>
+          <div style="display:flex;gap:8px">
+            <input class="input" id="photoName" data-testid="photo-name-input" placeholder="np. obiad" style="flex:1"/>
+            <button class="icon-btn" style="flex-shrink:0;background:rgba(66,133,244,0.15);border:1px solid rgba(66,133,244,0.3)" onclick="googleSearchPhoto()" aria-label="Szukaj w Google" title="Szukaj w Google">
+              <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21.35 11.1H12v2.6h5.4c-.23 1.2-.9 2.2-1.9 2.9v2.4h3.1c1.8-1.65 2.85-4.1 2.85-6.95 0-.45-.04-.88-.1-1.28z" fill="#4285F4"/><path d="M12 22c2.73 0 5.02-.9 6.7-2.45l-3.1-2.4c-.9.6-2.05.96-3.6.96-2.77 0-5.12-1.87-5.96-4.4H2.9v2.48A10 10 0 0 0 12 22z" fill="#34A853"/><path d="M6.04 13.71A6.05 6.05 0 0 1 5.72 12c0-.6.1-1.17.3-1.71V7.81H2.9A10.02 10.02 0 0 0 2 12c0 1.61.38 3.14 1.07 4.5l2.97-2.79z" fill="#FBBC05"/><path d="M12 5.88c1.56 0 2.96.54 4.06 1.59l3.04-3.04A10 10 0 0 0 12 2 10 10 0 0 0 2.9 7.81l3.14 2.48C6.88 7.75 9.23 5.88 12 5.88z" fill="#EA4335"/></svg>
+            </button>
+          </div>
+        </div>
         <div class="field">
-          <label class="label">Opcjonalna nazwa</label>
-          <input class="input" id="photoName" data-testid="photo-name-input" placeholder="np. obiad" />
+          <label class="label">Ile gramów ma posiłek? (opcjonalne — dokładniejsza analiza)</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="input" id="photoGrams" data-testid="photo-grams-input" type="number" inputmode="numeric" placeholder="np. 350" style="flex:1"/>
+          </div>
+          <div class="portion-row" style="margin-top:8px;gap:6px;grid-template-columns:repeat(5,1fr)" id="photoGramsPresets">
+            <button class="portion-preset" data-pg="100" style="font-size:10px;padding:5px 6px" onclick="setPhotoGrams(100)">100g</button>
+            <button class="portion-preset" data-pg="150" style="font-size:10px;padding:5px 6px" onclick="setPhotoGrams(150)">150g</button>
+            <button class="portion-preset" data-pg="200" style="font-size:10px;padding:5px 6px" onclick="setPhotoGrams(200)">200g</button>
+            <button class="portion-preset" data-pg="300" style="font-size:10px;padding:5px 6px" onclick="setPhotoGrams(300)">300g</button>
+            <button class="portion-preset" data-pg="400" style="font-size:10px;padding:5px 6px" onclick="setPhotoGrams(400)">400g</button>
+          </div>
+          <div style="font-size:11px;color:#5b5b6e;margin-top:6px">Bez gramów AI oszacuje porcję ze zdjęcia</div>
         </div>
       </div>
       <div id="photoLoading" style="display:none">
@@ -669,7 +713,8 @@
       </button>
       <div style="height:10px"></div>
       <button class="btn btn-primary" id="photoSubmitBtn" data-testid="photo-submit-btn" onclick="submitPhoto()" style="display:none">
-        Oszacuj kalorie
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Analizuj i dodaj
       </button>
     </div>
   </section>
@@ -737,16 +782,17 @@
         <input class="input" id="wkName" data-testid="wk-name" placeholder="np. Klatka i triceps"/>
       </div>
       <div class="field">
-        <label class="label">Opisz trening (AI rozpozna ćwiczenia)</label>
-        <textarea class="textarea" id="wkDesc" data-testid="wk-desc" placeholder="np. wyciskanie sztangi 4×10, rozpiętki 3×12, dipsy 3×do upadku"></textarea>
+        <label class="label">Opisz trening — AI rozpozna ćwiczenia</label>
+        <textarea class="textarea" id="wkDesc" data-testid="wk-desc" placeholder="Możesz wkleić cały plan z notatnika, np.:&#10;Wyciskanie sztangi 4×10 @ 80kg&#10;Rozpiętki hantlami 3×12&#10;Dipsy 3×do upadku&#10;Cable crossover 4×15&#10;&#10;AI rozpozna wszystkie ćwiczenia po kolei." style="min-height:140px"></textarea>
+        <div style="font-size:11px;color:#5b5b6e;margin-top:4px">💡 Wklej cały plan — AI przetworzy go w całości i doda ćwiczenia kolejno</div>
       </div>
       <div id="wkAILoading" style="display:none">
         <div class="skeleton"></div>
-        <div class="loading-text">AI analizuje trening…</div>
+        <div class="loading-text">AI analizuje plan treningu…</div>
       </div>
       <button class="btn btn-secondary" data-testid="wk-analyze-btn" onclick="analyzeWorkout()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.39 0 4.68.94 6.37 2.63"/><polyline points="21 4 21 10 15 10"/></svg>
-        Analizuj z AI
+        Analizuj z AI (cały plan)
       </button>
     </div>
 
@@ -2217,13 +2263,18 @@ function showSuccess(){
 
 /* ---- TEXT ---- */
 async function submitText(){
+  const name = document.getElementById('textName').value.trim();
   const desc = document.getElementById('textDesc').value.trim();
-  if(!desc){ toast('Wpisz opis posiłku','error'); vibrate(50); return; }
-  const prompt = `Oszacuj kalorie i makroskładniki dla: ${desc}. Użyj wyszukiwania Google dla dokładności danych żywieniowych. Odpowiedz TYLKO w JSON: {"kalorie": 000, "bialko": 00, "tluszcze": 00, "weglowodany": 00}`;
+  if(!name && !desc){ toast('Wpisz nazwę posiłku','error'); vibrate(50); return; }
+  const query = name + (desc ? ` — ${desc}` : '');
+  const finalName = name || desc.slice(0,80);
+  const prompt = `Oszacuj kalorie i makroskładniki dla: "${query}". Dane żywieniowe bierz z popularnych tabel (np. USDA, OpenFoodFacts). Odpowiedz TYLKO w JSON bez żadnego tekstu: {"kalorie": 000, "bialko": 00, "tluszcze": 00, "weglowodany": 00}`;
   document.getElementById('textLoading').style.display='block';
   try{
     const r = await sendToAI(prompt, null);
-    addMeal({name:desc.slice(0,80), emoji:'🍽️', ...r});
+    addMeal({name: finalName.slice(0,80), emoji:'🍽️', ...r});
+    document.getElementById('textName').value='';
+    document.getElementById('textDesc').value='';
     showSuccess();
     setTimeout(()=>showScreen('home'),700);
   }catch(e){
@@ -2241,6 +2292,17 @@ function resetPhotoForm(){
   document.getElementById('photoPreviewWrap').style.display='none';
   document.getElementById('photoSubmitBtn').style.display='none';
   document.getElementById('photoName').value='';
+  document.getElementById('photoGrams').value='';
+  document.querySelectorAll('#photoGramsPresets .portion-preset').forEach(b=>b.classList.remove('active'));
+}
+function setPhotoGrams(g){
+  document.getElementById('photoGrams').value = g;
+  document.querySelectorAll('#photoGramsPresets .portion-preset').forEach(b=>b.classList.toggle('active', parseFloat(b.dataset.pg)===g));
+}
+function googleSearchPhoto(){
+  const name = document.getElementById('photoName').value.trim();
+  const query = name ? `kalorie ${name} wartości odżywcze` : 'kalorie posiłek wartości odżywcze';
+  window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
 }
 function onPhotoSelected(e){
   const f = e.target.files?.[0];
@@ -2270,13 +2332,42 @@ function onPhotoSelected(e){
 }
 async function submitPhoto(){
   if(!photoBase64){ toast('Wybierz zdjęcie','error'); return; }
-  const prompt = `Na tym zdjęciu jest posiłek. Oszacuj kalorie i makroskładniki używając wyszukiwania Google dla dokładności. Odpowiedz TYLKO w JSON: {"kalorie": 000, "bialko": 00, "tluszcze": 00, "weglowodany": 00}`;
+  const grams = parseFloat(document.getElementById('photoGrams').value)||0;
+  const nameHint = document.getElementById('photoName').value.trim();
+
+  let prompt;
+  if(grams > 0){
+    // Tryb z gramaturą — AI zwraca wartości na 100g, skalujemy potem
+    prompt = `Rozpoznaj posiłek na zdjęciu i podaj wartości odżywcze NA 100g tego produktu/posiłku. ${nameHint ? `Wskazówka: "${nameHint}".` : ''} Użyj danych żywieniowych z tabel USDA/OpenFoodFacts dla dokładności. Odpowiedz TYLKO w JSON bez żadnego tekstu: {"nazwa": "string", "kalorie": 000, "bialko": 00.0, "tluszcze": 00.0, "weglowodany": 00.0}`;
+  } else {
+    // Tryb bez gramów — AI szacuje całość
+    prompt = `Rozpoznaj posiłek na zdjęciu i oszacuj kalorie oraz makroskładniki całej widocznej porcji. ${nameHint ? `Wskazówka: "${nameHint}".` : ''} Użyj danych żywieniowych z tabel USDA/OpenFoodFacts. Odpowiedz TYLKO w JSON bez żadnego tekstu: {"nazwa": "string", "kalorie": 000, "bialko": 00.0, "tluszcze": 00.0, "weglowodany": 00.0}`;
+  }
+
   document.getElementById('photoLoading').style.display='block';
   document.getElementById('photoSubmitBtn').style.display='none';
   try{
-    const r = await sendToAI(prompt, photoBase64);
-    const name = document.getElementById('photoName').value.trim() || 'Posiłek ze zdjęcia';
-    addMeal({name, emoji:'📸', ...r});
+    const raw = await _aiCallWithFallback(prompt, photoBase64, 512);
+    const parsed = _extractJSON(raw);
+    const detectedName = parsed.nazwa || nameHint || 'Posiłek ze zdjęcia';
+    let cal, p, f, c;
+    if(grams > 0){
+      const ratio = grams / 100;
+      cal = Math.round((parsed.kalorie||0) * ratio);
+      p   = Math.round((parsed.bialko||0) * ratio * 10) / 10;
+      f   = Math.round((parsed.tluszcze||0) * ratio * 10) / 10;
+      c   = Math.round((parsed.weglowodany||0) * ratio * 10) / 10;
+    } else {
+      cal = Math.round(parsed.kalorie||0);
+      p   = Math.round((parsed.bialko||0)*10)/10;
+      f   = Math.round((parsed.tluszcze||0)*10)/10;
+      c   = Math.round((parsed.weglowodany||0)*10)/10;
+    }
+    const mealName = nameHint || detectedName.slice(0,80);
+    const suffix = grams > 0 ? ` (${grams}g)` : '';
+    addMeal({name: mealName + suffix, emoji:'📸', kalorie:cal, bialko:p, tluszcze:f, weglowodany:c,
+      ...(grams>0 ? {weightGrams:grams, per100g:{kalorie:parsed.kalorie||0, bialko:parsed.bialko||0, tluszcze:parsed.tluszcze||0, weglowodany:parsed.weglowodany||0}} : {})
+    });
     showSuccess();
     setTimeout(()=>showScreen('home'),700);
   }catch(e){
@@ -2553,20 +2644,62 @@ document.addEventListener('keydown', e=>{
 });
 
 /* =================== MANUAL ADD =================== */
+function setManGrams(g){
+  document.getElementById('manGrams').value = g;
+  document.querySelectorAll('#manGramsPresets .portion-preset').forEach(b=>b.classList.toggle('active', parseFloat(b.dataset.mg)===g));
+  updateManualPreview();
+}
+function updateManualPreview(){
+  const per100Cal = parseFloat(document.getElementById('manPer100Cal').value)||0;
+  const per100P   = parseFloat(document.getElementById('manPer100P').value)||0;
+  const per100F   = parseFloat(document.getElementById('manPer100F').value)||0;
+  const per100C   = parseFloat(document.getElementById('manPer100C').value)||0;
+  const grams     = parseFloat(document.getElementById('manGrams').value)||0;
+  const box = document.getElementById('manualPreviewBox');
+  if(grams <= 0 || (per100Cal <= 0 && per100P <= 0 && per100F <= 0 && per100C <= 0)){
+    box.style.display='none'; return;
+  }
+  const ratio = grams / 100;
+  const cal = Math.round(per100Cal * ratio);
+  const p   = Math.round(per100P * ratio * 10) / 10;
+  const f   = Math.round(per100F * ratio * 10) / 10;
+  const c   = Math.round(per100C * ratio * 10) / 10;
+  document.getElementById('manPreviewCal').textContent = `${cal} kcal`;
+  document.getElementById('manPreviewMacros').textContent = `B ${p}g · T ${f}g · W ${c}g`;
+  box.style.display = 'block';
+}
 function submitManual(){
-  const name = document.getElementById('manName').value.trim() || 'Posiłek';
-  const cal = parseFloat(document.getElementById('manCal').value);
-  if(!cal || cal<=0){ toast('Wpisz kalorie','error'); vibrate(50); return; }
-  const p = parseFloat(document.getElementById('manP').value)||0;
-  const f = parseFloat(document.getElementById('manF').value)||0;
-  const c = parseFloat(document.getElementById('manC').value)||0;
-  addMeal({name, emoji:'✍️', kalorie:cal, bialko:p, tluszcze:f, weglowodany:c});
+  const name       = document.getElementById('manName').value.trim() || 'Posiłek';
+  const per100Cal  = parseFloat(document.getElementById('manPer100Cal').value)||0;
+  const per100P    = parseFloat(document.getElementById('manPer100P').value)||0;
+  const per100F    = parseFloat(document.getElementById('manPer100F').value)||0;
+  const per100C    = parseFloat(document.getElementById('manPer100C').value)||0;
+  const grams      = parseFloat(document.getElementById('manGrams').value)||0;
+  if(grams <= 0){ toast('Wpisz gramaturę porcji','error'); vibrate(50); return; }
+  if(per100Cal <= 0 && per100P <= 0 && per100F <= 0 && per100C <= 0){
+    toast('Wpisz wartości odżywcze na 100g','error'); vibrate(50); return;
+  }
+  const ratio = grams / 100;
+  const cal   = Math.round(per100Cal * ratio);
+  const p     = Math.round(per100P * ratio * 10) / 10;
+  const f     = Math.round(per100F * ratio * 10) / 10;
+  const c     = Math.round(per100C * ratio * 10) / 10;
+  addMeal({
+    name: `${name} (${grams}g)`,
+    emoji:'✍️',
+    kalorie: cal, bialko: p, tluszcze: f, weglowodany: c,
+    weightGrams: grams,
+    per100g: { kalorie: per100Cal, bialko: per100P, tluszcze: per100F, weglowodany: per100C }
+  });
   // reset form
   document.getElementById('manName').value='';
-  document.getElementById('manCal').value='';
-  document.getElementById('manP').value='';
-  document.getElementById('manF').value='';
-  document.getElementById('manC').value='';
+  document.getElementById('manPer100Cal').value='';
+  document.getElementById('manPer100P').value='';
+  document.getElementById('manPer100F').value='';
+  document.getElementById('manPer100C').value='';
+  document.getElementById('manGrams').value='';
+  document.getElementById('manualPreviewBox').style.display='none';
+  document.querySelectorAll('#manGramsPresets .portion-preset').forEach(b=>b.classList.remove('active'));
   showSuccess();
   setTimeout(()=>showScreen('home'),700);
 }
@@ -3125,24 +3258,51 @@ function addManualExerciseToDraft(){
 }
 async function analyzeWorkout(){
   const desc = document.getElementById('wkDesc').value.trim();
-  if(!desc){ toast('Opisz trening','error'); return; }
-  const prompt = `Przeanalizuj ten opis treningu i wyodrębnij ćwiczenia. Odpowiedz TYLKO w JSON:\n{"cwiczenia":[{"nazwa":string,"grupy_miesniowe":string[],"sugerowane_serie":number,"sugerowane_powt":number}]}\nOpis: ${desc}`;
+  if(!desc){ toast('Opisz trening lub wklej plan','error'); return; }
+  const prompt = `Jesteś ekspertem od treningu siłowego. Przeanalizuj poniższy opis/plan treningu i wyodrębnij WSZYSTKIE ćwiczenia dokładnie w kolejności, w jakiej zostały wymienione.
+
+Dla każdego ćwiczenia zwróć:
+- "nazwa": polska nazwa ćwiczenia (jeśli jest po angielsku — przetłumacz)
+- "grupy_miesniowe": tablica partii (klatka/plecy/nogi/barki/biceps/triceps/brzuch/cardio/posladki/lydki)
+- "sugerowane_serie": liczba serii (jeśli podana, inaczej null)
+- "sugerowane_powt": liczba powtórzeń lub czas (jeśli podany, inaczej null)
+- "ciezar": ciężar jeśli podany jako string np. "80kg", inaczej null
+- "uwagi": dodatkowe uwagi jeśli podane np. "do upadku", inaczej null
+
+Odpowiedz TYLKO w JSON — zero tekstu poza JSON:
+{"cwiczenia":[{"nazwa":string,"grupy_miesniowe":string[],"sugerowane_serie":number|null,"sugerowane_powt":number|null,"ciezar":string|null,"uwagi":string|null}]}
+
+PLAN TRENINGU:
+${desc}`;
+
   document.getElementById('wkAILoading').style.display='block';
   try{
-    // re-use sendToAI ale oczekujemy {cwiczenia:[...]}
-    const r = await sendAIRaw(prompt);
+    const text = await _aiCallWithFallback(prompt, null, 8192);
+    const r = _extractJSON(text);
     if(!r.cwiczenia || !Array.isArray(r.cwiczenia)) throw new Error('AI nie zwróciło listy ćwiczeń');
     if(!workoutDraft) workoutDraft = {name:'',exercises:[]};
     r.cwiczenia.forEach(c=>{
-      workoutDraft.exercises.push({
-        nazwa:c.nazwa, grupy:c.grupy_miesniowe||[],
-        emoji:EX_GROUP_EMOJI[(c.grupy_miesniowe||[])[0]]||'💪',
-        sugerowane_serie:c.sugerowane_serie, sugerowane_powt:c.sugerowane_powt,
+      const exEntry = {
+        nazwa: c.nazwa,
+        grupy: c.grupy_miesniowe||[],
+        emoji: EX_GROUP_EMOJI[(c.grupy_miesniowe||[])[0]]||'💪',
+        sugerowane_serie: c.sugerowane_serie||null,
+        sugerowane_powt: c.sugerowane_powt||null,
         sets:[]
-      });
+      };
+      if(c.ciezar) exEntry.uwagi = (c.uwagi ? `${c.uwagi} · ` : '') + c.ciezar;
+      else if(c.uwagi) exEntry.uwagi = c.uwagi;
+      workoutDraft.exercises.push(exEntry);
     });
     renderDraftExercises();
-    toast(`Dodano ${r.cwiczenia.length} ćwiczeń`,'success');
+    // auto-fill training name from first line if empty
+    const wkNameEl = document.getElementById('wkName');
+    if(!wkNameEl.value.trim()){
+      const firstLine = desc.split('\n')[0].slice(0,40);
+      if(firstLine.length > 2 && firstLine.length < 30) wkNameEl.value = firstLine;
+    }
+    toast(`✅ Dodano ${r.cwiczenia.length} ćwiczeń`, 'success');
+    document.getElementById('wkDesc').value = '';
   }catch(e){
     toast(e.message||'Błąd AI','error');
   }finally{
