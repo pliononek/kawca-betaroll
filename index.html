@@ -905,27 +905,13 @@
       </div>
       <div class="row-toggle">
         <div>
-          <div class="row-toggle-label">Google Search Grounding</div>
-          <div style="font-size:11px;color:#5b5b6e;margin-top:2px">Model googluje dane żywieniowe zamiast zgadywać</div>
-        </div>
-        <div class="toggle" id="tgGrounding" data-testid="tg-grounding" onclick="toggleClick(this)"></div>
-      </div>
-      <div class="row-toggle">
-        <div>
           <div class="row-toggle-label">Google Search</div>
-          <div style="font-size:11px;color:#5b5b6e;margin-top:2px">Włącza wyszukiwanie Google dla odpowiedzi AI</div>
+          <div style="font-size:11px;color:#5b5b6e;margin-top:2px">Włącza wyszukiwanie Google przez Serper API</div>
         </div>
         <div class="toggle" id="tgGoogleSearch" onclick="toggleClick(this)"></div>
       </div>
-      <div class="row-toggle">
-        <div>
-          <div class="row-toggle-label">Serper Search zamiast Grounding</div>
-          <div style="font-size:11px;color:#5b5b6e;margin-top:2px">Tanie wyszukiwanie Google zamiast drogiego Groundingu</div>
-        </div>
-        <div class="toggle" id="tgSerperSearch" onclick="toggleClick(this)"></div>
-      </div>
       <div class="field">
-        <label class="label">Klucz API — Serper (wyszukiwanie)</label>
+        <label class="label">Klucz API — Serper</label>
         <input class="input" id="keySerper" type="password" placeholder="Serper API key…"/>
       </div>
     </div>
@@ -1478,10 +1464,8 @@ function loadSettingsForm(){
   document.getElementById('restDur').value = String(s.restDur||90);
   document.getElementById('tgSound').classList.toggle('on', s.restSound!==false);
   document.getElementById('tgVibe').classList.toggle('on', s.restVibe!==false);
-  document.getElementById('tgGrounding').classList.toggle('on', s.useGrounding===true);
   document.getElementById('tgGoogleSearch').classList.toggle('on', s.useGoogleSearch === true);
   document.getElementById('keySerper').value = s.keys?.serper || '';
-  document.getElementById('tgSerperSearch').classList.toggle('on', s.useSerperSearch === true);
   const au = localStorage.getItem(LS_AUTO_UPDATE);
   document.getElementById('tgAutoUpdate').classList.toggle('on', au!=='false');
   const savedVer = localStorage.getItem('cal_currentVersion');
@@ -1511,9 +1495,7 @@ function saveSettings(){
     restDur: parseInt(document.getElementById('restDur').value)||90,
     restSound: document.getElementById('tgSound').classList.contains('on'),
     restVibe: document.getElementById('tgVibe').classList.contains('on'),
-    useGrounding: document.getElementById('tgGrounding').classList.contains('on'),
-    useGoogleSearch: document.getElementById('tgGoogleSearch').classList.contains('on'),
-    useSerperSearch: document.getElementById('tgSerperSearch').classList.contains('on')
+    useGoogleSearch: document.getElementById('tgGoogleSearch').classList.contains('on')
   };
   setSettings(s);
   vibrate(20);
@@ -2347,7 +2329,7 @@ async function sendAiChat(){
     if(!apiKey){ toast('Brak klucza Gemini w ustawieniach','error'); return; }
 
     let searchContext = '';
-    if (s.useSerperSearch && s.keys?.serper && isNutritionQuery(text)) {
+    if (s.useGoogleSearch && s.keys?.serper && isNutritionQuery(text)) {
       searchContext = await webSearch(text + ' kalorie wartości odżywcze');
     }
 
@@ -2405,7 +2387,7 @@ async function submitText(){
 
   const s = getSettings();
   let searchContext = '';
-  if (s.useSerperSearch && s.keys?.serper) {
+  if (s.useGoogleSearch && s.keys?.serper) {
     const searchQuery = buildNutritionSearchQuery(name, desc, 0);
     searchContext = await webSearch(searchQuery);
   }
@@ -2489,7 +2471,7 @@ async function submitPhoto(){
 
   const s = getSettings();
   let searchContext = '';
-  if (s.useSerperSearch && s.keys?.serper) {
+  if (s.useGoogleSearch && s.keys?.serper) {
     const searchQuery = buildNutritionSearchQuery(nameHint || 'posiłek ze zdjęcia', '', grams);
     searchContext = await webSearch(searchQuery);
   }
