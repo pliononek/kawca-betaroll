@@ -453,6 +453,22 @@
   .toggle.on::after{transform:translateX(22px)}
   .row-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 0}
   .row-toggle-label{font-size:14px;color:#c0c0d0}
+
+  /* ===== AI CHAT TYPING ANIMATION ===== */
+  .ai-typing-dots{display:inline-flex;align-items:center;gap:5px;padding:4px 2px}
+  .ai-typing-dots span{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--accent-start);
+    animation:aiDotBounce 1.2s infinite ease-in-out;
+  }
+  .ai-typing-dots span:nth-child(2){animation-delay:.2s}
+  .ai-typing-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes aiDotBounce{
+    0%,80%,100%{transform:translateY(0);opacity:.4}
+    40%{transform:translateY(-6px);opacity:1}
+  }
+  .ai-msg{margin-bottom:12px;animation:aiMsgIn .25s ease}
+  @keyframes aiMsgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
@@ -865,6 +881,19 @@
           <div class="theme-swatch orange"></div>
           <div class="theme-label">Pomarańczowy</div>
         </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title" style="margin-top:0">Kamera</div>
+      <div class="field">
+        <label class="label">Obiektyw skanera kodów</label>
+        <select class="select" id="cameraLens" data-testid="camera-lens">
+          <option value="auto">Automatyczny</option>
+          <option value="ultrawide">Ultraszeroki (0.5x)</option>
+          <option value="wide">Szerokokątny (1x)</option>
+          <option value="tele">Teleobiektyw (2x+)</option>
+        </select>
       </div>
     </div>
 
@@ -1342,6 +1371,7 @@ function loadSettingsForm(){
   document.getElementById('settingProvider').value = 'gemini';
   document.getElementById('keyGemini').value = s.keys?.gemini||'';
   document.getElementById('geminiModel').value = s.geminiModel||'gemini-3.1-flash-lite';
+  document.getElementById('cameraLens').value = s.cameraLens||'auto';
   document.getElementById('goalCal').value = s.goalCal||'';
   document.getElementById('goalP').value = s.goalP||'';
   document.getElementById('goalF').value = s.goalF||'';
@@ -1366,6 +1396,7 @@ function saveSettings(){
   const s = {
     provider: 'gemini',
     geminiModel: document.getElementById('geminiModel').value,
+    cameraLens: document.getElementById('cameraLens').value,
     keys: {
       gemini: document.getElementById('keyGemini').value.trim()
     },
@@ -1972,14 +2003,20 @@ let aiChatHistory = [];
 function renderAiChatMessages(){
   const container = document.getElementById('aiChatMessages');
   if(!container) return;
-  container.innerHTML = aiChatHistory.map(m => `
-    <div class="ai-msg ${m.role==='user'?'user':''}" style="display:flex;flex-direction:column;${m.role==='user'?'align-items:flex-end':'align-items:flex-start'}">
-      <div style="max-width:80%;padding:12px 16px;border-radius:16px;${m.role==='user'?'background:linear-gradient(135deg,var(--accent-start),var(--accent-end));color:#fff;border-bottom-right-radius:4px':'background:rgba(255,255,255,.06);color:#f5f5fa;border-bottom-left-radius:4px;border:1px solid rgba(255,255,255,.06)'}">
-        ${m.content.replace(/\n/g,'<br>')}
+  container.innerHTML = aiChatHistory.map(m => {
+    const isUser = m.role === 'user';
+    const isThinking = !isUser && m.content === '';
+    const bubbleContent = isThinking
+      ? `<div class="ai-typing-dots"><span></span><span></span><span></span></div>`
+      : m.content.replace(/\n/g,'<br>');
+    return `
+    <div class="ai-msg" style="display:flex;flex-direction:column;${isUser?'align-items:flex-end':'align-items:flex-start'}">
+      <div style="max-width:80%;padding:12px 16px;border-radius:16px;${isUser?'background:linear-gradient(135deg,var(--accent-start),var(--accent-end));color:#fff;border-bottom-right-radius:4px':'background:rgba(255,255,255,.06);color:#f5f5fa;border-bottom-left-radius:4px;border:1px solid rgba(255,255,255,.06)'}">
+        ${bubbleContent}
       </div>
-      <div style="font-size:10px;color:#5b5b6e;margin-top:4px;padding:0 4px">${m.role==='user'?'Ty':'AI'}</div>
-    </div>
-  `).join('');
+      <div style="font-size:10px;color:#5b5b6e;margin-top:4px;padding:0 4px">${isUser?'Ty':'AI'}</div>
+    </div>`;
+  }).join('');
   container.scrollTop = container.scrollHeight;
 }
 
@@ -2137,12 +2174,39 @@ async function startBarcode(){
   try{
     codeReader = new ZXing.BrowserMultiFormatReader();
     const video = document.getElementById('barcodeVideo');
-    codeReader.decodeFromVideoDevice(null, video, (result, err)=>{
-      if(result){
-        const code = result.getText();
-        stopBarcode();
-        lookupBarcode(code);
+    const s = getSettings();
+    const lens = s.cameraLens || 'auto';
+
+    const devices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
+    let deviceId = null;
+
+    if(lens === 'ultrawide'){
+      const found = devices.find(d => /ultra|0\.5|ultrawide/i.test(d.label));
+      if(found){ deviceId = found.deviceId; }
+      else {
+        // próbuj przez zoom constraint
+        try{
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' }, zoom: 0.5 }
+          });
+          video.srcObject = stream; await video.play();
+          codeReader.decodeFromStream(stream, video, (result)=>{
+            if(result){ const code = result.getText(); stopBarcode(); lookupBarcode(code); }
+          });
+          return;
+        }catch(ze){ toast('Ultraszeroki niedostępny, używam domyślnej','info'); }
       }
+    } else if(lens === 'wide'){
+      const found = devices.find(d => /wide|back|rear|environment/i.test(d.label) && !/ultra/i.test(d.label));
+      if(found) deviceId = found.deviceId;
+    } else if(lens === 'tele'){
+      const found = devices.find(d => /tele|2x|zoom/i.test(d.label));
+      if(found) deviceId = found.deviceId;
+    }
+    // 'auto' lub nie znaleziono — deviceId zostaje null (domyślna tylna kamera)
+
+    codeReader.decodeFromVideoDevice(deviceId, video, (result, err)=>{
+      if(result){ const code = result.getText(); stopBarcode(); lookupBarcode(code); }
     });
   }catch(e){
     toast('Brak dostępu do kamery: '+e.message,'error');
