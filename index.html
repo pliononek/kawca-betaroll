@@ -657,6 +657,10 @@
           <label class="label">Opcjonalna nazwa</label>
           <input class="input" id="photoName" data-testid="photo-name-input" placeholder="np. obiad" />
         </div>
+        <div class="field">
+          <label class="label">Waga (w gramach)</label>
+          <input class="input" id="photoGrams" data-testid="photo-grams-input" type="number" inputmode="numeric" placeholder="np. 250" min="1" />
+        </div>
       </div>
       <div id="photoLoading" style="display:none">
         <div class="skeleton"></div>
@@ -1009,7 +1013,7 @@
       <button class="portion-preset" data-mult="2">2×</button>
     </div>
     <div class="field">
-      <label class="label">Lub wpisz mnożnik</label>
+      <label class="label" id="portionLabel">Lub wpisz mnożnik</label>
       <input class="input" id="portionInput" data-testid="portion-input" type="number" step="0.1" min="0.1" inputmode="decimal" />
     </div>
     <div class="modal-preview">
@@ -1749,16 +1753,20 @@ function addFavorite(f){
 }
 
 /* =================== PORTION MODAL =================== */
-let portionMealId=null, portionBase=null, portionMult=1;
+let portionMealId=null, portionBase=null, portionMult=1, portionIs100gBase=false;
 function openPortionModal(id){
   const meal = getMeals().find(m=>m.id===id);
   if(!meal) return;
   portionMealId = id;
+  portionIs100gBase = !!meal.is100gBase;
   // base values = original (we store originals on first edit)
   portionBase = meal.base || {kalorie:meal.kalorie, bialko:meal.bialko, tluszcze:meal.tluszcze, weglowodany:meal.weglowodany};
   portionMult = meal.mult || 1;
   document.getElementById('portionMealName').textContent = meal.name;
-  document.getElementById('portionInput').value = portionMult;
+  document.getElementById('portionLabel').textContent = portionIs100gBase ? 'Wpisz wagę (w gramach)' : 'Lub wpisz mnożnik';
+  document.getElementById('portionInput').value = portionIs100gBase ? Math.round(portionMult * 100) : portionMult;
+  document.getElementById('portionInput').step = portionIs100gBase ? '1' : '0.1';
+  document.getElementById('portionInput').min = portionIs100gBase ? '1' : '0.1';
   document.querySelectorAll('#portionPresets .portion-preset').forEach(b=>{
     b.classList.toggle('active', parseFloat(b.dataset.mult)===portionMult);
   });
@@ -1776,13 +1784,18 @@ function updatePortionPreview(){
   const f = Math.round(portionBase.tluszcze*m);
   const c = Math.round(portionBase.weglowodany*m);
   document.getElementById('portionPreview').textContent = `${cal} kcal`;
-  document.getElementById('portionPreviewMacros').textContent = `B ${p}g · T ${f}g · W ${c}g (${m}×)`;
+  if(portionIs100gBase){
+    const grams = Math.round(m * 100);
+    document.getElementById('portionPreviewMacros').textContent = `B ${p}g · T ${f}g · W ${c}g (${grams}g)`;
+  } else {
+    document.getElementById('portionPreviewMacros').textContent = `B ${p}g · T ${f}g · W ${c}g (${m}×)`;
+  }
 }
 document.addEventListener('click', e=>{
   const p = e.target.closest('#portionPresets .portion-preset');
   if(!p) return;
   portionMult = parseFloat(p.dataset.mult);
-  document.getElementById('portionInput').value = portionMult;
+  document.getElementById('portionInput').value = portionIs100gBase ? Math.round(portionMult * 100) : portionMult;
   document.querySelectorAll('#portionPresets .portion-preset').forEach(b=>b.classList.toggle('active',b===p));
   updatePortionPreview();
 });
@@ -1790,8 +1803,8 @@ document.addEventListener('input', e=>{
   if(e.target.id==='portionInput'){
     const v = parseFloat(e.target.value);
     if(!isNaN(v) && v>0){
-      portionMult = v;
-      document.querySelectorAll('#portionPresets .portion-preset').forEach(b=>b.classList.toggle('active', parseFloat(b.dataset.mult)===v));
+      portionMult = portionIs100gBase ? v / 100 : v;
+      document.querySelectorAll('#portionPresets .portion-preset').forEach(b=>b.classList.toggle('active', parseFloat(b.dataset.mult)===portionMult));
       updatePortionPreview();
     }
   }
@@ -1906,7 +1919,7 @@ async function _aiCall(model, key, prompt, imageBase64, maxTokens){
   const headers = {'Content-Type':'application/json'};
   const parts = [{text:prompt}];
   if(imageBase64) parts.push({inline_data:{mime_type:'image/jpeg', data:imageBase64}});
-  const body = JSON.stringify({contents:[{parts}], generationConfig:{temperature:0.2, responseMimeType:'application/json', maxOutputTokens: maxTokens||512}});
+  const body = JSON.stringify({contents:[{parts}], generationConfig:{temperature:0.2, responseMimeType:'application/json', maxOutputTokens: maxTokens||512}, tools:[{google_search:{}}]});
   const res = await fetch(endpoint,{method:'POST',headers,body});
   if(!res.ok){
     const t = await res.text();
@@ -2113,6 +2126,7 @@ function resetPhotoForm(){
   document.getElementById('photoPreviewWrap').style.display='none';
   document.getElementById('photoSubmitBtn').style.display='none';
   document.getElementById('photoName').value='';
+  document.getElementById('photoGrams').value='';
 }
 function onPhotoSelected(e){
   const f = e.target.files?.[0];
@@ -2142,7 +2156,13 @@ function onPhotoSelected(e){
 }
 async function submitPhoto(){
   if(!photoBase64){ toast('Wybierz zdjęcie','error'); return; }
-  const prompt = `Na tym zdjęciu jest posiłek. Oszacuj kalorie i makroskładniki.\nOdpowiedz TYLKO w JSON: {"kalorie": 000, "bialko": 00, "tluszcze": 00, "weglowodany": 00}`;
+  const grams = document.getElementById('photoGrams').value.trim();
+  let prompt;
+  if(grams){
+    prompt = `Na tym zdjęciu jest posiłek. Waga tego produktu/posiłku to ${grams} gramów. Przelicz makroskładniki dokładnie dla tej wagi.\nOdpowiedz TYLKO w JSON: {"kalorie": 000, "bialko": 00, "tluszcze": 00, "weglowodany": 00}`;
+  } else {
+    prompt = `Na tym zdjęciu jest posiłek. Oszacuj kalorie i makroskładniki dla standardowej porcji ze zdjęcia.\nOdpowiedz TYLKO w JSON: {"kalorie": 000, "bialko": 00, "tluszcze": 00, "weglowodany": 00}`;
+  }
   document.getElementById('photoLoading').style.display='block';
   document.getElementById('photoSubmitBtn').style.display='none';
   try{
@@ -2174,40 +2194,13 @@ async function startBarcode(){
   try{
     codeReader = new ZXing.BrowserMultiFormatReader();
     const video = document.getElementById('barcodeVideo');
-    const s = getSettings();
-    const lens = s.cameraLens || 'auto';
-
-    const devices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
-    let deviceId = null;
-
-    if(lens === 'ultrawide'){
-      const found = devices.find(d => /ultra|0\.5|ultrawide/i.test(d.label));
-      if(found){ deviceId = found.deviceId; }
-      else {
-        // próbuj przez zoom constraint
-        try{
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: 'environment' }, zoom: 0.5 }
-          });
-          video.srcObject = stream; await video.play();
-          codeReader.decodeFromStream(stream, video, (result)=>{
-            if(result){ const code = result.getText(); stopBarcode(); lookupBarcode(code); }
-          });
-          return;
-        }catch(ze){ toast('Ultraszeroki niedostępny, używam domyślnej','info'); }
+    codeReader.decodeFromConstraints(
+      { video: { facingMode: { ideal: 'environment' } } },
+      video,
+      (result, err) => {
+        if(result){ const code = result.getText(); stopBarcode(); lookupBarcode(code); }
       }
-    } else if(lens === 'wide'){
-      const found = devices.find(d => /wide|back|rear|environment/i.test(d.label) && !/ultra/i.test(d.label));
-      if(found) deviceId = found.deviceId;
-    } else if(lens === 'tele'){
-      const found = devices.find(d => /tele|2x|zoom/i.test(d.label));
-      if(found) deviceId = found.deviceId;
-    }
-    // 'auto' lub nie znaleziono — deviceId zostaje null (domyślna tylna kamera)
-
-    codeReader.decodeFromVideoDevice(deviceId, video, (result, err)=>{
-      if(result){ const code = result.getText(); stopBarcode(); lookupBarcode(code); }
-    });
+    );
   }catch(e){
     toast('Brak dostępu do kamery: '+e.message,'error');
   }
@@ -2241,7 +2234,8 @@ async function lookupBarcode(code){
       kalorie: cal,
       bialko: Math.round(n['proteins_100g']||n['proteins']||0),
       tluszcze: Math.round(n['fat_100g']||n['fat']||0),
-      weglowodany: Math.round(n['carbohydrates_100g']||n['carbohydrates']||0)
+      weglowodany: Math.round(n['carbohydrates_100g']||n['carbohydrates']||0),
+      is100gBase: true
     };
     if(meal.kalorie===0 && meal.bialko===0 && meal.tluszcze===0 && meal.weglowodany===0){
       toast('Brak danych odżywczych dla tego produktu','error'); showScreen('add'); return;
