@@ -770,6 +770,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
     </div>
+    <div id="dayPlanSection"></div>
     <button class="btn btn-primary" data-testid="new-workout-btn" onclick="showScreen('workout-create')">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Nowy trening
@@ -3470,6 +3471,43 @@ let workoutStartTs = 0;
 let workoutTimerInterval = null;
 
 function renderWorkoutHome(){
+  // sekcja planu dnia
+  const dayPlanEl = document.getElementById('dayPlanSection');
+  if(dayPlanEl){
+    const dayInfo = typeof WEEK_DAYS !== 'undefined'
+      ? WEEK_DAYS.find(d => d.key === selectedWeekDay)
+      : null;
+    const exercises = (dayInfo && typeof getWeekDay === 'function')
+      ? getWeekDay(selectedWeekDay)
+      : [];
+
+    if(exercises.length > 0){
+      const exRows = exercises.map((ex, i) => {
+        const meta = [
+          ex.sugerowane_serie && ex.sugerowane_powt ? `${ex.sugerowane_serie}×${ex.sugerowane_powt}` : null,
+          ex.sugerowany_ciezar ? `${ex.sugerowany_ciezar}kg` : null
+        ].filter(Boolean).join(' · ');
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;${i < exercises.length-1 ? 'border-bottom:1px solid rgba(255,255,255,.05)' : ''}">
+          <span style="font-size:20px">${ex.emoji||'💪'}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:600">${escapeHtml(ex.nazwa)}</div>
+            ${meta ? `<div style="font-size:11px;color:var(--accent-text);font-weight:600;margin-top:1px">${escapeHtml(meta)}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+
+      dayPlanEl.innerHTML = `
+        <div class="section-title" style="margin-top:0">Plan na ${dayInfo.label}</div>
+        <div class="card" style="padding:4px 16px;margin-bottom:8px">${exRows}</div>
+        <button class="btn btn-primary" style="margin-bottom:12px" onclick="startDayWorkout('${selectedWeekDay}')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Zacznij trening
+        </button>`;
+    } else {
+      dayPlanEl.innerHTML = '';
+    }
+  }
+
   const list = document.getElementById('workoutList');
   // 1) karta aktualnie trwającego treningu na górze
   list.innerHTML = '';
@@ -3699,6 +3737,19 @@ function startWorkout(){
   workoutDraft = null;
   ensureLiveTimer();
   showScreen('workout-active');
+}
+function startDayWorkout(dayKey){
+  const exercises = getWeekDay(dayKey);
+  if(!exercises || exercises.length===0){ toast('Brak ćwiczeń w tym dniu','error'); return; }
+  workoutDraft = {
+    name: WEEK_DAYS.find(d=>d.key===dayKey)?.label || 'Trening',
+    exercises: exercises.map(e=>({nazwa: e.nazwa, grupy: e.grupy||[], emoji: e.emoji||'💪', sets: []}))
+  };
+  showScreen('workout-create');
+  setTimeout(() => {
+    document.getElementById('wkName').value = workoutDraft.name;
+    document.getElementById('wkName').focus();
+  }, 50);
 }
 function saveActiveWorkout(){
   try{ sessionStorage.setItem('cw', JSON.stringify({w:currentWorkout, ts:workoutStartTs})); }catch(e){}
