@@ -912,7 +912,7 @@
       </div>
       <div class="field">
         <label class="label">Klucz API — Gemini</label>
-        <input class="input" id="keyGemini" data-testid="key-gemini" type="password" placeholder="AIza…"/>
+        <input class="input" id="keyGemini" data-testid="key-gemini" type="password" placeholder="klucz api"/>
       </div>
       <div class="field">
         <label class="label">Model Gemini</label>
@@ -1686,6 +1686,16 @@ async function installUpdate(){
     bar.style.width = '100%';
     percent.textContent = '100%';
     statusText.textContent = '✅ Gotowe! Przeładowywanie…';
+
+    // backup kluczowych danych przed przeładowaniem
+    try {
+      const _bak = {
+        settings: localStorage.getItem('cal_settings'),
+        meals:    localStorage.getItem('cal_meals'),
+        plan:     localStorage.getItem('weekly_plan')
+      };
+      sessionStorage.setItem('_kawcia_bak', JSON.stringify(_bak));
+    } catch(e){ /* cicho */ }
 
     setTimeout(() => location.reload(), 600);
 
@@ -4225,6 +4235,17 @@ function unlockSecretKunicki(){
 
 /* =================== INIT =================== */
 (async function init(){
+  // przywróć dane po aktualizacji
+  try {
+    const _bakRaw = sessionStorage.getItem('_kawcia_bak');
+    if(_bakRaw){
+      const _bak = JSON.parse(_bakRaw);
+      if(_bak.settings && !localStorage.getItem('cal_settings')) localStorage.setItem('cal_settings', _bak.settings);
+      if(_bak.meals    && !localStorage.getItem('cal_meals'))    localStorage.setItem('cal_meals',    _bak.meals);
+      if(_bak.plan     && !localStorage.getItem('weekly_plan'))  localStorage.setItem('weekly_plan',  _bak.plan);
+      sessionStorage.removeItem('_kawcia_bak');
+    }
+  } catch(e){ /* cicho */ }
   // SPRAWDŹ CZY CZEKA AKTUALIZACJA — podmiana całej strony na nowy HTML
   const pendingHtml = localStorage.getItem('cal_updatedHtml');
   if(pendingHtml){
