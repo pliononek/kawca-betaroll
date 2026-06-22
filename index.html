@@ -489,6 +489,56 @@
   .week-day-block.today .week-day-block-arrow{color:rgba(255,255,255,.6)}
   .week-day-block-empty{font-size:12px;color:#3a3a4a;font-style:italic}
   .week-day-block.today .week-day-block-empty{color:rgba(255,255,255,.5)}
+
+  /* ===== welcome extended form ===== */
+  .welcome-form{display:grid;gap:14px;text-align:left;margin-bottom:20px}
+  .welcome-form .field{margin-bottom:0}
+  .welcome-form .label{text-align:left}
+  .welcome-form .input,.welcome-form .select{text-align:left;font-size:16px}
+  .welcome-form .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .welcome-form .hint{font-size:12px;color:#5b5b6e;text-align:center;margin-top:-6px}
+
+  /* ===== ranks screen ===== */
+  .ranks-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .ranks-header h1{margin:0}
+  .rank-summary{font-size:12px;color:var(--accent-text);font-weight:600;background:rgba(255,255,255,.04);padding:8px 12px;border-radius:999px;border:1px solid var(--accent-border)}
+  .rank-section{background:rgba(19,19,26,.7);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:16px;margin-bottom:16px}
+  .rank-section-title{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:#7a7a8c;font-weight:700;margin-bottom:12px}
+
+  /* silhouette */
+  .silhouette-wrap{display:flex;justify-content:center;gap:16px;overflow-x:auto;padding:4px 0}
+  .silhouette-svg{height:280px;width:auto;max-width:100%}
+  .silhouette-svg .body-base{fill:rgba(255,255,255,.02);stroke:rgba(255,255,255,.12);stroke-width:1}
+  .silhouette-svg .silhouette-base{fill:#ffffff;stroke:#ffffff;stroke-width:2.5px;stroke-linejoin:round}
+  .silhouette-svg .character-hair{fill:#13131a;stroke:#ffffff;stroke-width:1.5px;stroke-linejoin:round}
+  .silhouette-svg .muscle{fill:#5a5a5a;transition:fill .4s ease}
+  .silhouette-svg .muscle path,
+  .silhouette-svg path.muscle {stroke:#ffffff;stroke-width:1.2px;stroke-linejoin:round}
+  .silhouette-label{font-size:10px;text-align:center;color:#7a7a8c;margin-top:6px}
+
+  /* rank tiles - unified with rank-list */
+
+  /* rank list */
+  .rank-list{display:flex;flex-direction:column;gap:8px}
+  .rank-item{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;border-left:3px solid var(--rank-color)}
+  .rank-item-emoji{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .rank-item-info{flex:1;min-width:0}
+  .rank-item-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rank-item-meta{font-size:11px;color:#7a7a8c;margin-top:2px}
+  .rank-item-badge{flex-shrink:0;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:5px 10px;border-radius:999px;background:color-mix(in srgb, var(--rank-color) 18%, transparent);color:var(--rank-color);border:1.5px solid color-mix(in srgb, var(--rank-color) 60%, transparent);box-shadow:0 0 10px var(--rank-glow),inset 0 1px 0 color-mix(in srgb, var(--rank-color) 30%, transparent)}
+
+  /* rank badge inline */
+  .rank-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--rank-color)}
+  .rank-badge::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--rank-color);box-shadow:0 0 8px var(--rank-color)}
+
+  /* ===== rank up toast ===== */
+  .rank-up-toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,rgba(19,19,26,.98),rgba(30,30,40,.98));border:2px solid var(--rank-color);border-radius:24px;padding:26px 32px;min-width:300px;max-width:90vw;text-align:center;z-index:180;box-shadow:0 0 60px var(--rank-glow),0 20px 60px rgba(0,0,0,.5);transition:transform .5s cubic-bezier(.34,1.56,.64,1);pointer-events:none;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+  .rank-up-toast.show{transform:translate(-50%,-50%) scale(1)}
+  .rank-up-toast-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--rank-color);font-weight:800;margin-bottom:8px}
+  .rank-up-toast-title{font-size:22px;font-weight:800;color:#fff;margin-bottom:6px;line-height:1.2}
+  .rank-up-toast-rank{font-size:42px;font-weight:900;background:linear-gradient(135deg,var(--rank-color),#fff);-webkit-background-clip:text;background-clip:text;color:transparent;margin:8px 0}
+  .rank-up-toast-arrow{font-size:28px;color:var(--rank-color);margin-bottom:4px}
+  .rank-up-toast-old{font-size:12px;color:#7a7a8c;font-weight:600}
 </style>
 </head>
 <body>
@@ -904,6 +954,33 @@
     <div class="header" style="padding-top:0"><h1>Ustawienia</h1></div>
 
     <div class="card">
+      <div class="section-title" style="margin-top:0">Profil użytkownika</div>
+      <div class="row-2">
+        <div class="field">
+          <label class="label">Wiek (lat)</label>
+          <input class="input" id="settingAge" data-testid="setting-age-input" type="number" inputmode="numeric" min="10" max="99" placeholder="lat"/>
+        </div>
+        <div class="field">
+          <label class="label">Płeć</label>
+          <select class="select" id="settingGender" data-testid="setting-gender-input">
+            <option value="M">Mężczyzna</option>
+            <option value="K">Kobieta</option>
+          </select>
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label class="label">Wzrost (cm)</label>
+          <input class="input" id="settingHeight" data-testid="setting-height-input" type="number" inputmode="numeric" min="100" max="250" placeholder="cm"/>
+        </div>
+        <div class="field">
+          <label class="label">Waga (kg)</label>
+          <input class="input" id="settingWeight" data-testid="setting-weight-input" type="number" inputmode="decimal" min="30" max="300" step="0.1" placeholder="kg"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="section-title" style="margin-top:0">Provider AI</div>
       <div class="field">
         <label class="label">Aktywny model</label>
@@ -1064,6 +1141,205 @@
     <div style="height:60px"></div>
   </section>
 
+  <!-- ============ RANKS ============ -->
+  <section id="screen-ranks" class="screen">
+    <div class="header" style="padding-bottom:12px">
+      <h1>Rangi</h1>
+      <div class="rank-summary" id="rankSummary" data-testid="rank-summary">Obliczanie…</div>
+    </div>
+
+    <!-- Sekcja 1: Sylwetka -->
+    <div class="rank-section">
+      <div class="rank-section-title">🦴 Twoja sylwetka siłowa</div>
+      <div class="silhouette-wrap" id="rankSilhouette">
+        <svg class="silhouette-svg" viewBox="0 0 420 360" aria-label="Anatomiczna sylwetka z zaznaczonymi partiami mięśniowymi">
+          <defs>
+            <linearGradient id="muscleGradFront" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0.02)"/>
+            </linearGradient>
+            <filter id="muscleShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="rgba(0,0,0,0.4)"/>
+            </filter>
+          </defs>
+
+          <!-- PRZÓD -->
+          <g transform="translate(20,10)">
+            <!-- Baza sylwetki (gruby obrys zewnętrzny) -->
+            <path class="silhouette-base" d="M 85 10 C 70 10, 61 22, 61 38 C 61 48, 64 54, 69 57 L 72 74 C 56 74, 52 84, 52 102 L 52 184 C 52 184, 48 200, 48 240 C 48 268, 54 278, 54 278 L 50 306 L 50 334 C 50 342, 58 344, 68 342 L 72 306 L 80 274 L 85 186 L 90 274 L 98 306 L 102 342 C 112 344, 120 342, 120 334 L 120 306 L 116 278 C 116 278, 122 268, 122 240 C 122 200, 118 184, 118 184 L 118 102 C 118 84, 114 74, 98 74 L 98 57 C 101 57, 106 54, 109 48 C 109 38, 100 10, 85 10 Z M 48 66 C 32 68, 22 80, 22 88 L 14 130 C 10 150, 10 172, 12 184 C 8 186, 8 190, 10 193 C 10 197, 13 203, 16 203 C 19 203, 23 198, 24 193 C 25 189, 26 184, 26 180 L 34 136 L 42 96 C 48 94, 56 88, 58 74 Z M 122 66 C 138 68, 148 80, 148 88 L 156 130 C 160 150, 160 172, 158 184 C 162 186, 162 190, 160 193 C 160 197, 157 203, 154 203 C 151 203, 147 198, 146 193 C 145 189, 144 184, 144 180 L 136 136 L 128 96 C 122 94, 114 88, 112 74 Z" />
+
+            <!-- głowa (bardziej anatomiczna z zaznaczoną linią żuchwy i uszami) -->
+            <path class="body-base" d="M85 10 C70 10 61 22 61 38 C61 48 64 54 69 57 C73 59 78 59 85 59 C92 59 97 59 101 57 C106 54 109 48 109 38 C109 22 100 10 85 10 Z" />
+            <!-- szyja z trapezem -->
+            <path class="body-base" d="M72 57 C72 57 70 72 63 80 C70 82 100 82 107 80 C100 72 98 57 98 57 Z" />
+            <!-- obojczyki -->
+            <path class="body-base" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" d="M63 80 C73 83 85 83 85 83 C85 83 97 83 107 80" />
+
+            <!-- Fryzura (przód) -->
+            <path class="character-hair" d="M 61 34 C 61 18, 70 6, 85 6 C 100 6, 109 18, 109 34 C 109 38, 106 39, 104 36 C 104 26, 97 20, 85 20 C 73 20, 66 26, 66 36 C 64 39, 61 38, 61 34 Z" />
+
+            <!-- barki przód (deltoidy o wysokiej definicji) -->
+            <g id="muscle-front-barki-l" class="muscle">
+              <!-- akton przedni -->
+              <path d="M48 66 C36 68 24 76 22 86 C24 93 30 96 38 95 C44 94 48 88 50 82 Z" />
+              <!-- akton boczny -->
+              <path d="M22 86 C21 90 23 95 27 97 C32 97 38 95 38 95 C30 95 26 91 22 86 Z" />
+            </g>
+            <g id="muscle-front-barki-r" class="muscle">
+              <path d="M122 66 C134 68 146 76 148 86 C146 93 140 96 132 95 C126 94 122 88 120 82 Z" />
+              <path d="M148 86 C149 90 147 95 143 97 C138 97 132 95 132 95 C140 95 144 91 148 86 Z" />
+            </g>
+
+            <!-- klatka piersiowa (anatomiczny podział na lewy i prawy płat z widoczną separacją) -->
+            <g id="muscle-front-klatka" class="muscle">
+              <path d="M84 76 C75 74 65 74 58 78 C54 84 50 94 52 106 C54 114 60 118 68 118 C74 118 78 112 80 104 C81 96 82 86 84 76 Z" />
+              <path d="M86 76 C95 74 105 74 112 78 C116 84 120 94 118 106 C116 114 110 118 102 118 C96 118 92 112 90 104 C89 96 88 86 86 76 Z" />
+            </g>
+
+            <!-- brzuch (wyraźnie zarysowany sześciopak i mięśnie skośne) -->
+            <g id="muscle-front-brzuch" class="muscle">
+              <!-- górny rząd -->
+              <path d="M72 128 C78 128 83 128 84 128 L84 140 C80 140 73 140 71 140 Z" />
+              <path d="M98 128 C92 128 87 128 86 128 L86 140 C90 140 97 140 99 140 Z" />
+              <!-- środkowy rząd -->
+              <path d="M71 143 C77 143 83 143 84 143 L84 155 C79 155 72 155 70 155 Z" />
+              <path d="M99 143 C93 143 87 143 86 143 L86 155 C91 155 98 155 100 155 Z" />
+              <!-- dolny rząd -->
+              <path d="M70 158 C77 158 83 158 84 158 L84 172 C79 174 72 173 69 170 Z" />
+              <path d="M100 158 C93 158 87 158 86 158 L86 172 C91 174 98 173 101 170 Z" />
+              <!-- skośne boczki i zębaty przedni -->
+              <path d="M68 128 C64 135 60 145 61 158 C62 165 65 171 67 174 C68 171 69 164 69 158 C68 152 68 140 68 128 Z" />
+              <path d="M102 128 C106 135 110 145 109 158 C108 165 105 171 103 174 C102 171 101 164 101 158 C102 152 102 140 102 128 Z" />
+            </g>
+
+            <!-- bicepsy (dwugłowe z pełnym zarysem) -->
+            <g id="muscle-front-biceps-l" class="muscle">
+              <path d="M38 94 C28 96 20 104 20 114 C20 124 28 132 36 130 C42 128 44 118 44 110 C44 102 42 96 38 94 Z" />
+            </g>
+            <g id="muscle-front-biceps-r" class="muscle">
+              <path d="M132 94 C142 96 150 104 150 114 C150 124 142 132 134 130 C128 128 126 118 126 110 C126 102 128 96 132 94 Z" />
+            </g>
+
+            <!-- przedramiona przód (zarys mięśni zginaczy i prostowników) -->
+            <path class="body-base" d="M22 130 L14 172 C 10 180, 12 184, 12 184 L 26 180 L 34 136 Z" />
+            <path class="body-base" d="M148 130 L156 172 C 160 180, 158 184, 158 184 L 144 180 L 136 136 Z" />
+
+            <!-- uda przód (rozbudowane czworogłowe: proste, obszerne boczne i przyśrodkowe - łezka) -->
+            <g id="muscle-front-nogi-l" class="muscle">
+              <!-- prosty uda -->
+              <path d="M66 186 C60 195 56 215 56 240 C56 244 58 248 60 250 C62 245 66 230 68 215 C70 200 70 190 66 186 Z" />
+              <!-- obszerny boczny (sweep) -->
+              <path d="M56 188 C50 198 48 215 48 240 C48 258 54 268 58 274 C58 266 56 250 56 240 C56 215 60 195 56 188 Z" />
+              <!-- obszerny przyśrodkowy (łezka) -->
+              <path d="M68 215 C66 230 62 245 60 250 C62 254 66 268 70 274 C76 270 78 255 78 240 C78 228 72 220 68 215 Z" />
+            </g>
+            <g id="muscle-front-nogi-r" class="muscle">
+              <path d="M104 186 C110 195 114 215 114 240 C114 244 112 248 110 250 C108 245 104 230 102 215 C100 200 100 190 104 186 Z" />
+              <path d="M114 188 C120 198 122 215 122 240 C122 258 116 268 112 274 C112 266 114 250 114 240 C114 215 110 195 114 188 Z" />
+              <path d="M102 215 C104 230 108 245 110 250 C108 254 104 268 100 274 C94 270 92 255 92 240 C92 228 98 220 102 215 Z" />
+            </g>
+
+            <!-- łydki przód (brzuchaty i płaszczkowaty) -->
+            <g id="muscle-front-lydki-l" class="muscle">
+              <path d="M54 284 C48 290 48 305 50 320 L56 310 Z" />
+              <path d="M60 284 L56 310 L58 334 C60 334 62 320 64 306 Z" />
+              <path d="M64 306 C66 320 68 334 68 334 L72 306 Z" />
+            </g>
+            <g id="muscle-front-lydki-r" class="muscle">
+              <path d="M116 284 C122 290 122 305 120 320 L114 310 Z" />
+              <path d="M110 284 L114 310 L112 334 C110 334 108 320 106 306 Z" />
+              <path d="M106 306 C104 320 102 334 102 334 L98 306 Z" />
+            </g>
+
+            <text x="85" y="355" text-anchor="middle" fill="#7a7a8c" font-size="11" font-weight="600">Przód</text>
+          </g>
+
+          <!-- TYŁ -->
+          <g transform="translate(220,10)">
+            <!-- Baza sylwetki (gruby obrys zewnętrzny) -->
+            <path class="silhouette-base" d="M 85 10 C 70 10, 61 22, 61 38 C 61 48, 64 54, 69 57 L 72 74 C 56 74, 52 84, 52 102 L 52 184 C 52 184, 48 200, 48 240 C 48 268, 54 278, 54 278 L 50 306 L 50 334 C 50 342, 58 344, 68 342 L 72 306 L 80 274 L 85 186 L 90 274 L 98 306 L 102 342 C 112 344, 120 342, 120 334 L 120 306 L 116 278 C 116 278, 122 268, 122 240 C 122 200, 118 184, 118 184 L 118 102 C 118 84, 114 74, 98 74 L 98 57 C 101 57, 106 54, 109 48 C 109 38, 100 10, 85 10 Z M 48 66 C 32 68, 22 80, 22 88 L 14 130 C 10 150, 10 172, 12 184 C 8 186, 8 190, 10 193 C 10 197, 13 203, 16 203 C 19 203, 23 198, 24 193 C 25 189, 26 184, 26 180 L 34 136 L 42 96 C 48 94, 56 88, 58 74 Z M 122 66 C 138 68, 148 80, 148 88 L 156 130 C 160 150, 160 172, 158 184 C 162 186, 162 190, 160 193 C 160 197, 157 203, 154 203 C 151 203, 147 198, 146 193 C 145 189, 144 184, 144 180 L 136 136 L 128 96 C 122 94, 114 88, 112 74 Z" />
+
+            <!-- głowa (tył) -->
+            <path class="body-base" d="M85 10 C70 10 61 22 61 38 C61 48 64 54 69 57 C73 59 78 59 85 59 C92 59 97 59 101 57 C106 54 109 48 109 38 C109 22 100 10 85 10 Z" />
+            <!-- szyja tył -->
+            <path class="body-base" d="M72 57 C72 57 70 72 63 80 C70 82 100 82 107 80 C100 72 98 57 98 57 Z" />
+
+            <!-- Fryzura (tył) -->
+            <path class="character-hair" d="M 68 53 C 60 51, 61 34, 61 24 C 61 14, 70 6, 85 6 C 100 6, 109 14, 109 24 C 109 34, 110 51, 102 53 C 95 55, 75 55, 68 53 Z" />
+
+            <!-- barki tył (tylne aktony deltoidów) -->
+            <g id="muscle-back-barki-l" class="muscle">
+              <path d="M48 66 C32 68 22 78 22 86 C22 92 28 95 36 94 C42 92 46 86 48 80 Z" />
+            </g>
+            <g id="muscle-back-barki-r" class="muscle">
+              <path d="M122 66 C138 68 148 78 148 86 C148 92 142 95 134 94 C128 92 124 86 122 80 Z" />
+            </g>
+
+            <!-- plecy (bardzo szczegółowy czworoboczny i najszersze grzbietu - skrzydła) -->
+            <g id="muscle-back-plecy" class="muscle">
+              <!-- czworoboczny (kaptur) -->
+              <path d="M85 64 L102 82 L85 106 L68 82 Z" />
+              <!-- najszerszy grzbietu - lewy -->
+              <path d="M68 82 L85 106 L85 136 L62 136 C52 120 54 94 68 82 Z" />
+              <!-- najszerszy grzbietu - prawy -->
+              <path d="M102 82 L85 106 L85 136 L108 136 C118 120 116 94 102 82 Z" />
+              <!-- obły większy i podgrzebieniowy - lewy -->
+              <path d="M68 82 C60 88 56 94 58 98 L72 98 Z" />
+              <!-- obły większy i podgrzebieniowy - prawy -->
+              <path d="M102 82 C110 88 114 94 112 98 L98 98 Z" />
+            </g>
+
+            <!-- pośladki (szczegółowy zarys mięśni pośladkowych wielkich) -->
+            <g id="muscle-back-posladki" class="muscle">
+              <path d="M84 142 C68 138 56 142 56 160 C56 178 70 186 84 180 Z" />
+              <path d="M86 142 C102 138 114 142 114 160 C114 178 100 186 86 180 Z" />
+            </g>
+
+            <!-- tricepsy (trójgłowe z podziałem na głowę długą i boczną) -->
+            <g id="muscle-back-triceps-l" class="muscle">
+              <path d="M28 88 C20 92 18 108 22 124 C26 128 34 126 36 114 C38 102 34 92 26 88 Z" />
+            </g>
+            <g id="muscle-back-triceps-r" class="muscle">
+              <path d="M144 88 C150 92 152 108 148 124 C144 128 136 126 134 114 C132 102 136 92 144 88 Z" />
+            </g>
+
+            <!-- przedramiona tył -->
+            <path class="body-base" d="M20 126 L14 172 C 10 180, 12 184, 12 184 L 26 180 L 34 134 Z" />
+            <path class="body-base" d="M150 126 L156 172 C 160 180, 158 184, 158 184 L 144 180 L 136 134 Z" />
+
+            <!-- uda tył (dwugłowe i półścięgniste) -->
+            <g id="muscle-back-nogi-l" class="muscle">
+              <path d="M62 188 C56 190 54 204 54 220 L52 252 Q52 272 58 282 Q66 286 72 282 L78 252 L80 204 Z" />
+            </g>
+            <g id="muscle-back-nogi-r" class="muscle">
+              <path d="M98 188 Q104 190 106 204 L108 252 Q108 272 102 282 Q94 286 88 282 L82 252 L80 204 Z" />
+            </g>
+
+            <!-- łydki tył (brzuchaty łydki z podziałem na głowę boczną i przyśrodkową) -->
+            <g id="muscle-back-lydki-l" class="muscle">
+              <path d="M54 288 C48 292 48 310 50 338 C56 346 64 342 68 320 Z" />
+              <path d="M68 320 C68 320 70 292 64 288 Z" />
+            </g>
+            <g id="muscle-back-lydki-r" class="muscle">
+              <path d="M116 288 C122 292 122 310 120 338 C114 346 106 342 102 320 Z" />
+              <path d="M102 320 C102 320 100 292 106 288 Z" />
+            </g>
+
+            <text x="85" y="355" text-anchor="middle" fill="#7a7a8c" font-size="11" font-weight="600">Tył</text>
+          </g>
+        </svg>
+      </div>
+      <div class="silhouette-label">Kolor odpowiada najwyższej randze dla danej partii mięśniowej</div>
+    </div>
+
+    <!-- Sekcja 2: Wszystkie ćwiczenia -->
+    <div class="rank-section">
+      <div class="rank-section-title">🏋️ Ranking i poziomy ćwiczeń</div>
+      <div class="rank-list" id="rankList" data-testid="rank-list"></div>
+    </div>
+    <div style="height:80px"></div>
+  </section>
+
 </div>
 
 <!-- ============ PORTION MODAL ============ -->
@@ -1184,9 +1460,9 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
     <span>Historia</span>
   </button>
-  <button class="nav-btn" data-testid="nav-achievements" data-screen="achievements" onclick="showScreen('achievements')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.5 13l1.5 8-5-3-5 3 1.5-8"/></svg>
-    <span>Odznaki</span>
+  <button class="nav-btn" data-testid="nav-ranks" data-screen="ranks" onclick="showScreen('ranks')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <span>Rangi</span>
   </button>
   <button class="nav-btn" data-testid="nav-settings" data-screen="settings" onclick="showScreen('settings')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1235,6 +1511,7 @@
       <button class="drawer-nav-item" data-screen="workout-week" data-testid="dn-workout" onclick="drawerNav('workout-week')"><span class="nav-emoji">💪</span><span>Trening</span></button>
       <button class="drawer-nav-item" data-screen="exercise-lib" data-testid="dn-lib" onclick="drawerNav('exercise-lib')"><span class="nav-emoji">📚</span><span>Baza ćwiczeń</span></button>
       <button class="drawer-nav-item" data-screen="history" data-testid="dn-history" onclick="drawerNav('history')"><span class="nav-emoji">📊</span><span>Historia</span></button>
+      <button class="drawer-nav-item" data-screen="ranks" data-testid="dn-ranks" onclick="drawerNav('ranks')"><span class="nav-emoji">🥇</span><span>Rangi</span></button>
       <button class="drawer-nav-item" data-screen="achievements" data-testid="dn-ach" onclick="drawerNav('achievements')"><span class="nav-emoji">🏅</span><span>Osiągnięcia</span></button>
       <button class="drawer-nav-item" data-screen="settings" data-testid="dn-settings" onclick="drawerNav('settings')"><span class="nav-emoji">⚙️</span><span>Ustawienia</span></button>
     </div>
@@ -1360,13 +1637,52 @@
   <div class="ach-toast-desc" id="achToastDesc">Opis</div>
 </div>
 
+<!-- ============ RANK UP TOAST ============ -->
+<div class="rank-up-toast" id="rankUpToast" data-testid="rank-up-toast">
+  <div class="rank-up-toast-label">Awans rangi!</div>
+  <div class="rank-up-toast-title" id="rankUpToastTitle">Klatka piersiowa</div>
+  <div class="rank-up-toast-arrow">⬆</div>
+  <div class="rank-up-toast-rank" id="rankUpToastRank">Gold</div>
+  <div class="rank-up-toast-old" id="rankUpToastOld">z Silver</div>
+</div>
+
 <!-- ============ WELCOME ============ -->
 <div class="welcome" id="welcomeScreen" data-testid="welcome-screen">
   <div class="welcome-card">
     <div class="welcome-icon">🔥</div>
     <h1>Cześć! Jak masz na imię?</h1>
-    <p>Spersonalizujemy aplikację dla Ciebie</p>
-    <input class="input" id="welcomeName" data-testid="welcome-name-input" placeholder="Twoje imię…" maxlength="30" autocomplete="given-name"/>
+    <p>Spersonalizujemy aplikację i obliczymy Twoje rangi siłowe</p>
+    <div class="welcome-form">
+      <div class="field">
+        <label class="label">Imię</label>
+        <input class="input" id="welcomeName" data-testid="welcome-name-input" placeholder="Twoje imię…" maxlength="30" autocomplete="given-name"/>
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label class="label">Wiek</label>
+          <input class="input" id="welcomeAge" data-testid="welcome-age-input" type="number" inputmode="numeric" min="10" max="99" placeholder="lat"/>
+        </div>
+        <div class="field">
+          <label class="label">Płeć</label>
+          <select class="select" id="welcomeGender" data-testid="welcome-gender-input">
+            <option value="" disabled selected>Wybierz</option>
+            <option value="M">Mężczyzna</option>
+            <option value="K">Kobieta</option>
+          </select>
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label class="label">Wzrost (cm)</label>
+          <input class="input" id="welcomeHeight" data-testid="welcome-height-input" type="number" inputmode="numeric" min="100" max="250" placeholder="cm"/>
+        </div>
+        <div class="field">
+          <label class="label">Waga (kg)</label>
+          <input class="input" id="welcomeWeight" data-testid="welcome-weight-input" type="number" inputmode="numeric" min="30" max="300" placeholder="kg"/>
+        </div>
+      </div>
+    </div>
+    <div class="welcome-form hint">Dane są zapisywane tylko na Twoim urządzeniu.</div>
     <button class="btn btn-primary" id="welcomeStartBtn" data-testid="welcome-start-btn" disabled style="opacity:.5" onclick="finishWelcome()">
       Zaczynamy
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -1397,6 +1713,7 @@ const LS = {
   meals: 'cal_meals',
   favorites: 'cal_favorites',
   userName: 'cal_userName',
+  userProfile: 'cal_userProfile',
   theme: 'cal_theme',
   workouts: 'workouts',
   customEx: 'custom_exercises',
@@ -1494,7 +1811,7 @@ function showScreen(name){
   const el = document.getElementById('screen-'+name);
   if(el){ el.classList.add('active'); currentScreen=name; window.scrollTo(0,0); }
   // map screens to nav tabs
-  const navMap = {home:'home',add:'home',workout:'workout','workout-create':'workout','workout-active':'workout','workout-detail':'workout','exercise-lib':'workout',history:'history',achievements:'achievements',settings:'settings','ai-chat':'ai-chat','workout-week':'workout-week'};
+  const navMap = {home:'home',add:'home',workout:'workout','workout-create':'workout','workout-active':'workout','workout-detail':'workout','exercise-lib':'workout',history:'history',ranks:'ranks',achievements:'achievements',settings:'settings','ai-chat':'ai-chat','workout-week':'workout-week'};
   const navActive = navMap[name] || name;
   document.querySelectorAll('.nav-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.screen===navActive);
@@ -1510,6 +1827,7 @@ function showScreen(name){
   if(name==='workout-create') { renderWorkoutCreate(); renderTemplates(); }
   if(name==='workout-active') renderActiveWorkout();
   if(name==='exercise-lib') renderExerciseLib();
+  if(name==='ranks') renderRanksScreen();
   if(name==='achievements') renderAchievementsScreen();
   if(name==='ai-chat') { aiChatHistory = []; renderAiChatMessages(); }
   if(currentWorkout) updateLiveTimers();
@@ -1519,6 +1837,16 @@ function showScreen(name){
 /* =================== SETTINGS =================== */
 function loadSettingsForm(){
   const s = getSettings();
+
+  // wczytaj profil użytkownika
+  const p = getUserProfile();
+  if(p){
+    document.getElementById('settingAge').value = p.age || '';
+    document.getElementById('settingHeight').value = p.height || '';
+    document.getElementById('settingWeight').value = p.weight || '';
+    document.getElementById('settingGender').value = p.gender || 'M';
+  }
+
   document.getElementById('settingProvider').value = 'gemini';
   document.getElementById('keyGemini').value = s.keys?.gemini||'';
   document.getElementById('geminiModel').value = s.geminiModel||'gemini-3.1-flash-lite';
@@ -1562,6 +1890,21 @@ function saveSettings(){
     useKnowledgeBase: document.getElementById('tgKnowledgeBase').classList.contains('on')
   };
   setSettings(s);
+
+  // zapisz profil użytkownika
+  const age = parseInt(document.getElementById('settingAge').value);
+  const height = parseInt(document.getElementById('settingHeight').value);
+  const weight = parseFloat(document.getElementById('settingWeight').value);
+  const gender = document.getElementById('settingGender').value;
+  if(age && height && weight && gender){
+    const p = getUserProfile() || {};
+    p.age = age;
+    p.height = height;
+    p.weight = weight;
+    p.gender = gender;
+    setUserProfile(p);
+  }
+
   vibrate(20);
   toast('Ustawienia zapisane','success');
   setTimeout(()=>showScreen('home'),400);
@@ -2834,6 +3177,14 @@ function setTheme(name){
 /* =================== USER NAME / GREETING =================== */
 function getUserName(){ return localStorage.getItem(LS.userName) || ''; }
 function setUserName(n){ localStorage.setItem(LS.userName, n); }
+function getUserProfile(){
+  try { return JSON.parse(localStorage.getItem(LS.userProfile)) || null; } catch(e){ return null; }
+}
+function setUserProfile(p){ localStorage.setItem(LS.userProfile, JSON.stringify(p)); }
+function hasUserProfile(){
+  const p = getUserProfile();
+  return !!(p && p.age && p.height && p.weight && p.gender);
+}
 function updateGreeting(){
   const el = document.getElementById('greetingText');
   const name = getUserName();
@@ -2860,10 +3211,26 @@ function hideWelcome(){
     w.classList.remove('hide');
   }, 300);
 }
+function validateWelcomeForm(){
+  const name = document.getElementById('welcomeName').value.trim();
+  const age = parseInt(document.getElementById('welcomeAge').value);
+  const height = parseInt(document.getElementById('welcomeHeight').value);
+  const weight = parseFloat(document.getElementById('welcomeWeight').value);
+  const gender = document.getElementById('welcomeGender').value;
+  const ok = name.length>=2 && age>=10 && age<=99 && height>=100 && height<=250 && weight>=30 && weight<=300 && (gender==='M' || gender==='K');
+  const btn = document.getElementById('welcomeStartBtn');
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '.5';
+}
 function finishWelcome(){
   const v = document.getElementById('welcomeName').value.trim();
-  if(v.length<2) return;
+  const age = parseInt(document.getElementById('welcomeAge').value);
+  const height = parseInt(document.getElementById('welcomeHeight').value);
+  const weight = parseFloat(document.getElementById('welcomeWeight').value);
+  const gender = document.getElementById('welcomeGender').value;
+  if(v.length<2 || !age || !height || !weight || !gender) return;
   setUserName(v);
+  setUserProfile({age, height, weight, gender, createdAt: Date.now()});
   vibrate(20);
   hideWelcome();
   updateGreeting();
@@ -2875,18 +3242,16 @@ function finishWelcome(){
     setTimeout(()=>renderHome(), 350);
   }
 }
-// enable button when name >= 2
+// enable button when all fields valid
 document.addEventListener('input', e=>{
-  if(e.target.id==='welcomeName'){
-    const ok = e.target.value.trim().length>=2;
-    const btn = document.getElementById('welcomeStartBtn');
-    btn.disabled = !ok;
-    btn.style.opacity = ok ? '1' : '.5';
+  if(e.target.id==='welcomeName' || e.target.id==='welcomeAge' || e.target.id==='welcomeHeight' || e.target.id==='welcomeWeight' || e.target.id==='welcomeGender'){
+    validateWelcomeForm();
   }
 });
 document.addEventListener('keydown', e=>{
-  if(e.key==='Enter' && e.target.id==='welcomeName'){
-    if(e.target.value.trim().length>=2) finishWelcome();
+  if(e.key==='Enter' && (e.target.id==='welcomeName' || e.target.id==='welcomeAge' || e.target.id==='welcomeHeight' || e.target.id==='welcomeWeight' || e.target.id==='welcomeGender')){
+    validateWelcomeForm();
+    if(!document.getElementById('welcomeStartBtn').disabled) finishWelcome();
   }
 });
 
@@ -2983,7 +3348,7 @@ function refreshDrawer(){
   document.getElementById('dMF').textContent = Math.round(tot.f)+'g';
   document.getElementById('dMC').textContent = Math.round(tot.c)+'g';
   // active nav
-  const navMap = {home:'home',workout:'workout','exercise-lib':'exercise-lib',history:'history',achievements:'achievements',settings:'settings','workout-week':'workout-week'};
+  const navMap = {home:'home',workout:'workout','exercise-lib':'exercise-lib',history:'history',ranks:'ranks',achievements:'achievements',settings:'settings','workout-week':'workout-week'};
   const cur = navMap[currentScreen] || (currentScreen.startsWith('workout')?'workout':currentScreen);
   document.querySelectorAll('.drawer-nav-item').forEach(el=>el.classList.toggle('active', el.dataset.screen===cur));
   updateDrawerActiveTheme();
@@ -3161,6 +3526,287 @@ const EXERCISE_DB = [
 function getCustomExercises(){ try{return JSON.parse(localStorage.getItem(LS.customEx))||[]}catch(e){return[]} }
 function setCustomExercises(arr){ localStorage.setItem(LS.customEx, JSON.stringify(arr)); }
 function allExercises(){ return [...EXERCISE_DB, ...getCustomExercises().map(e=>({...e, custom:true}))]; }
+
+/* =================== RANK SYSTEM (League of Legends) =================== */
+const RANKS = [
+  {id:'iron', name:'Iron', color:'#5a5a5a', glow:'rgba(90,90,90,0.4)', threshold:0},
+  {id:'bronze', name:'Bronze', color:'#cd7f32', glow:'rgba(205,127,50,0.4)', threshold:0.20},
+  {id:'silver', name:'Silver', color:'#c0c0c0', glow:'rgba(192,192,192,0.4)', threshold:0.35},
+  {id:'gold', name:'Gold', color:'#ffd700', glow:'rgba(255,215,0,0.4)', threshold:0.50},
+  {id:'platinum', name:'Platinum', color:'#3eb489', glow:'rgba(62,180,137,0.4)', threshold:0.65},
+  {id:'emerald', name:'Emerald', color:'#50c878', glow:'rgba(80,200,120,0.4)', threshold:0.80},
+  {id:'diamond', name:'Diamond', color:'#3b82f6', glow:'rgba(59,130,246,0.4)', threshold:0.95},
+  {id:'master', name:'Master', color:'#a855f7', glow:'rgba(168,85,247,0.4)', threshold:1.15},
+  {id:'grandmaster', name:'Grandmaster', color:'#ef4444', glow:'rgba(239,68,68,0.4)', threshold:1.40},
+  {id:'challenger', name:'Challenger', color:'#f59e0b', glow:'rgba(245,158,11,0.4)', threshold:1.80}
+];
+
+// Docelowa objętość (kg × powtórzenia) na JEDEN trening dla danej grupy mięśniowej
+const RANK_GROUP_STANDARDS = {
+  klatka: 3200,
+  plecy: 3600,
+  nogi: 5200,
+  barki: 2100,
+  biceps: 1600,
+  triceps: 1600,
+  brzuch: 900,
+  lydki: 1300,
+  posladki: 2200,
+  cardio: 0
+};
+
+// Docelowa objętość na jeden trening dla podstawowych ćwiczeń
+const RANK_EXERCISE_STANDARDS = {
+  'Wyciskanie sztangi na ławce płaskiej': 2600,
+  'Wyciskanie sztangi na ławce skośnej': 2200,
+  'Wyciskanie hantli na ławce': 2000,
+  'Rozpiętki z hantlami': 1400,
+  'Pompki': 1200,
+  'Martwy ciąg': 4200,
+  'Podciąganie na drążku': 1400,
+  'Wiosłowanie sztangą w opadzie': 2600,
+  'Wiosłowanie hantlem jednorącz': 1800,
+  'Pulldown (ściąganie na wyciągu)': 2200,
+  'Przysiad ze sztangą': 4400,
+  'Goblet squat': 1800,
+  'Leg press (suwnica)': 3200,
+  'Romanian deadlift': 2800,
+  'Hip thrust': 2400,
+  'Military press (wyciskanie żołnierskie)': 1800,
+  'Arnold press': 1600,
+  'Wznosy bokiem (lateral raise)': 1000,
+  'Uginanie sztangi': 1400,
+  'Uginanie hantli': 1200,
+  'Uginanie młotkowe': 1200,
+  'Pushdown na wyciągu': 1400,
+  'French press (łamane francuskie)': 1200,
+  'Plank (deska)': 600,
+  'Brzuszki (crunch)': 600
+};
+
+const RANK_TILE_EXERCISES = [
+  'Wyciskanie sztangi na ławce płaskiej',
+  'Martwy ciąg',
+  'Przysiad ze sztangą',
+  'Military press (wyciskanie żołnierskie)',
+  'Wiosłowanie sztangą w opadzie',
+  'Podciąganie na drążku',
+  'Hip thrust',
+  'Uginanie sztangi',
+  'Pushdown na wyciągu',
+  'Plank (deska)',
+  'Wznosy bokiem (lateral raise)',
+  'Wspięcia na palce stojąc'
+];
+
+const RANK_MUSCLE_MAP = {
+  klatka: ['muscle-front-klatka'],
+  plecy: ['muscle-back-plecy'],
+  nogi: ['muscle-front-nogi-l','muscle-front-nogi-r','muscle-back-nogi-l','muscle-back-nogi-r'],
+  barki: ['muscle-front-barki-l','muscle-front-barki-r','muscle-back-barki-l','muscle-back-barki-r'],
+  biceps: ['muscle-front-biceps-l','muscle-front-biceps-r'],
+  triceps: ['muscle-back-triceps-l','muscle-back-triceps-r'],
+  brzuch: ['muscle-front-brzuch'],
+  lydki: ['muscle-front-lydki-l','muscle-front-lydki-r','muscle-back-lydki-l','muscle-back-lydki-r'],
+  posladki: ['muscle-back-posladki'],
+  cardio: []
+};
+
+function getRankForRatio(ratio){
+  let rank = RANKS[0];
+  for(const r of RANKS){
+    if(ratio >= r.threshold) rank = r;
+    else break;
+  }
+  return rank;
+}
+
+function getStandardMultiplier(){
+  const p = getUserProfile();
+  if(!p) return {gender:1, weight:1, height:1, total:1};
+  const genderMult = p.gender === 'K' ? 0.65 : 1.0;
+  const weightMult = Math.pow(Math.max(30, p.weight) / 75, 0.8);
+  const heightMult = Math.pow(Math.max(100, p.height) / 175, 0.3);
+  const total = genderMult * weightMult * heightMult;
+  return {gender:genderMult, weight:weightMult, height:heightMult, total};
+}
+
+function getExerciseStandard(exerciseName){
+  const mult = getStandardMultiplier().total;
+  const direct = RANK_EXERCISE_STANDARDS[exerciseName];
+  if(direct) return direct * mult;
+  const ex = allExercises().find(e => e.nazwa === exerciseName);
+  const group = ex?.grupy?.[0] || 'cardio';
+  const groupStd = RANK_GROUP_STANDARDS[group] || 0;
+  if(groupStd === 0) return 0;
+  const countInGroup = allExercises().filter(e => e.grupy?.includes(group)).length || 1;
+  return (groupStd / Math.max(1, countInGroup)) * 1.35 * mult;
+}
+
+function getGroupStandard(group){
+  return (RANK_GROUP_STANDARDS[group] || 0) * getStandardMultiplier().total;
+}
+
+function getExerciseVolumes(){
+  const workouts = getWorkouts();
+  const volumes = {};
+  for(const w of workouts){
+    const exVol = {};
+    for(const ex of (w.exercises || [])){
+      const vol = (ex.sets || []).reduce((s, st) => s + (Number(st.reps)||0) * (Number(st.weight)||0), 0);
+      exVol[ex.nazwa] = (exVol[ex.nazwa] || 0) + vol;
+    }
+    for(const [name, vol] of Object.entries(exVol)){
+      volumes[name] = Math.max(volumes[name] || 0, vol);
+    }
+  }
+  return volumes;
+}
+
+function getGroupVolumes(){
+  const workouts = getWorkouts();
+  const groupVols = {};
+  for(const w of workouts){
+    const perGroup = {};
+    for(const ex of (w.exercises || [])){
+      const vol = (ex.sets || []).reduce((s, st) => s + (Number(st.reps)||0) * (Number(st.weight)||0), 0);
+      for(const g of (ex.grupy || [])){
+        perGroup[g] = (perGroup[g] || 0) + vol;
+      }
+    }
+    for(const [g, vol] of Object.entries(perGroup)){
+      groupVols[g] = Math.max(groupVols[g] || 0, vol);
+    }
+  }
+  return groupVols;
+}
+
+function getExerciseRank(exerciseName){
+  const vol = getExerciseVolumes()[exerciseName] || 0;
+  const std = getExerciseStandard(exerciseName);
+  const ratio = std > 0 ? vol / std : 0;
+  return {rank:getRankForRatio(ratio), vol, std, ratio};
+}
+
+function getGroupRank(group){
+  const vol = getGroupVolumes()[group] || 0;
+  const std = getGroupStandard(group);
+  const ratio = std > 0 ? vol / std : 0;
+  return {rank:getRankForRatio(ratio), vol, std, ratio};
+}
+
+function formatRankVol(vol){
+  if(vol >= 1000) return Math.round(vol/100)/10 + 'k';
+  return Math.round(vol);
+}
+
+function renderRanksScreen(){
+  const summary = document.getElementById('rankSummary');
+  const silhouette = document.getElementById('rankSilhouette');
+  const list = document.getElementById('rankList');
+
+  if(!hasUserProfile()){
+    summary.textContent = 'Brak profilu';
+    list.innerHTML = '<div class="empty">Uzupełnij dane na ekranie powitalnym lub w ustawieniach.</div>';
+    return;
+  }
+
+  // grupy
+  const groupRanks = {};
+  let bestRank = RANKS[0];
+  for(const g of Object.keys(RANK_MUSCLE_MAP)){
+    const gr = getGroupRank(g);
+    groupRanks[g] = gr;
+    if(gr.rank.threshold > bestRank.threshold) bestRank = gr.rank;
+  }
+  summary.textContent = 'Najwyższa: ' + bestRank.name;
+
+  // sylwetka
+  if(silhouette){
+    for(const g of Object.keys(RANK_MUSCLE_MAP)){
+      const ids = RANK_MUSCLE_MAP[g];
+      const color = groupRanks[g].rank.color;
+      ids.forEach(id=>{
+        const el = silhouette.querySelector('#'+id);
+        if(el) el.style.fill = color;
+      });
+    }
+  }
+
+  // lista wszystkich ćwiczeń
+  list.innerHTML = '';
+  const all = allExercises().slice().sort((a,b)=>{
+    const va = getExerciseRank(a.nazwa).vol;
+    const vb = getExerciseRank(b.nazwa).vol;
+    if(vb !== va) return vb - va;
+    return a.nazwa.localeCompare(b.nazwa);
+  });
+  all.forEach((e,i)=>{
+    const er = getExerciseRank(e.nazwa);
+    const rank = er && er.rank ? er.rank : null;
+    const item = document.createElement('div');
+    item.className = 'rank-item';
+    item.style.setProperty('--rank-color', rank ? rank.color : '#5a5a5a');
+    item.style.setProperty('--rank-glow', rank ? rank.glow : 'rgba(90,90,90,0.4)');
+    item.style.animation = 'fadeInLeft .3s ease both';
+    item.style.animationDelay = (i*20)+'ms';
+    item.innerHTML = `
+      <div class="rank-item-emoji">${e.emoji||EX_GROUP_EMOJI[e.grupy[0]]||'💪'}</div>
+      <div class="rank-item-info">
+        <div class="rank-item-name">${escapeHtml(e.nazwa)}</div>
+        <div class="rank-item-meta">${formatRankVol(er.vol)} / ${formatRankVol(er.std)} kg·rep · ${EX_GROUP_LABEL[e.grupy[0]]||e.grupy[0]}</div>
+      </div>
+      <div class="rank-item-badge">${rank ? rank.name.toUpperCase() : 'UNRANKED'}</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function getRankIndex(rankId){
+  return RANKS.findIndex(r => r.id === rankId);
+}
+
+function getTrainedGroupsFromWorkout(workout){
+  const groups = new Set();
+  for(const ex of (workout?.exercises || [])){
+    for(const g of (ex.grupy || [])) groups.add(g);
+  }
+  return Array.from(groups);
+}
+
+function getGroupRanksSnapshot(groups){
+  const snap = {};
+  for(const g of groups) snap[g] = getGroupRank(g).rank.id;
+  return snap;
+}
+
+function checkRankUps(beforeSnapshot){
+  const ups = [];
+  for(const g of Object.keys(beforeSnapshot)){
+    const after = getGroupRank(g).rank;
+    const beforeIdx = getRankIndex(beforeSnapshot[g]);
+    const afterIdx = getRankIndex(after.id);
+    if(afterIdx > beforeIdx){
+      ups.push({group:g, oldRank:RANKS[beforeIdx], newRank:after});
+    }
+  }
+  return ups;
+}
+
+function showRankUpToast(group, oldRank, newRank){
+  const el = document.getElementById('rankUpToast');
+  document.getElementById('rankUpToastTitle').textContent = EX_GROUP_LABEL[group] || group;
+  document.getElementById('rankUpToastRank').textContent = newRank.name;
+  document.getElementById('rankUpToastOld').textContent = `z ${oldRank.name}`;
+  el.style.setProperty('--rank-color', newRank.color);
+  el.style.setProperty('--rank-glow', newRank.glow);
+  el.classList.add('show');
+  vibrate([80,60,80,60,120]);
+  if(window.confetti){
+    confetti({particleCount:100, spread:100, origin:{y:0.5}, colors:[newRank.color,'#ffffff', oldRank.color]});
+  }
+  setTimeout(()=>el.classList.remove('show'), 2600);
+}
 
 /* =================== EXERCISE LIBRARY UI =================== */
 let exFilter = 'all';
@@ -4002,6 +4648,11 @@ function discardWorkout(){
 }
 function saveCompletedWorkout(){
   const duration = parseInt(document.getElementById('wkSummaryModal').dataset.duration)||0;
+
+  // zapisz rangi przed zapisem treningu
+  const trainedGroups = getTrainedGroupsFromWorkout(currentWorkout);
+  const ranksBefore = hasUserProfile() ? getGroupRanksSnapshot(trainedGroups) : {};
+
   const arr = getWorkouts();
   arr.push({
     id: currentWorkout.id,
@@ -4012,6 +4663,10 @@ function saveCompletedWorkout(){
     exercises: currentWorkout.exercises
   });
   setWorkouts(arr);
+
+  // sprawdź awanse rang
+  const rankUps = hasUserProfile() ? checkRankUps(ranksBefore) : [];
+
   document.getElementById('wkSummaryModal').classList.remove('show');
   stopWorkout();
   if(window.confetti){
@@ -4019,7 +4674,13 @@ function saveCompletedWorkout(){
   }
   toast('🎉 Trening zapisany!','success');
   checkAchievements();
-  setTimeout(()=>showScreen('workout'), 500);
+
+  // pokaż powiadomienia o awansach (kolejno, z opóźnieniem)
+  rankUps.forEach((up, i)=>{
+    setTimeout(()=>showRankUpToast(up.group, up.oldRank, up.newRank), 800 + i*2800);
+  });
+
+  setTimeout(()=>showScreen('workout'), 500 + Math.max(0, rankUps.length)*2800);
 }
 
 /* =================== WORKOUT TEMPLATES =================== */
@@ -4319,7 +4980,7 @@ function unlockSecretKunicki(){
   document.getElementById('drawerVersion').textContent = displayVer;
   const name = getUserName();
   const s = getSettings();
-  if(!name){
+  if(!name || !hasUserProfile()){
     showWelcome();
   } else if(!s.goalCal){
     updateGreeting();
