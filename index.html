@@ -135,6 +135,7 @@
   /* ===== buttons ===== */
   .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;border-radius:16px;font-size:16px;font-weight:600;transition:transform .12s,box-shadow .2s;position:relative;overflow:hidden}
   .btn:active{transform:scale(.96)}
+  .btn-sm{padding:8px 12px;font-size:12px;border-radius:10px}
   .btn-primary{background:linear-gradient(135deg,var(--accent-start),var(--accent-end));color:#fff;box-shadow:0 0 30px var(--glow)}
   .btn-secondary{background:rgba(255,255,255,.06);color:#f5f5fa;border:1px solid rgba(255,255,255,.08)}
   .btn-ghost{background:transparent;color:var(--accent-text)}
@@ -487,8 +488,13 @@
   .week-day-block.today .week-day-block-ex-preview{color:rgba(255,255,255,.7)}
   .week-day-block-arrow{color:#3a3a4a;flex-shrink:0}
   .week-day-block.today .week-day-block-arrow{color:rgba(255,255,255,.6)}
+  .week-day-block{color:#fff}
   .week-day-block-empty{font-size:12px;color:#3a3a4a;font-style:italic}
   .week-day-block.today .week-day-block-empty{color:rgba(255,255,255,.5)}
+  .week-day-block.completed{opacity:0.7;background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3)}
+  .week-day-block.completed .week-day-block-name{color:#86efac}
+  .week-day-block-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:auto}
+  .week-day-block-actions .btn{width:auto;padding:6px 10px;font-size:11px}
 
   /* ===== welcome extended form ===== */
   .welcome-form{display:grid;gap:14px;text-align:left;margin-bottom:20px}
@@ -499,9 +505,9 @@
   .welcome-form .hint{font-size:12px;color:#5b5b6e;text-align:center;margin-top:-6px}
 
   /* ===== ranks screen ===== */
-  .ranks-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .ranks-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.06)}
   .ranks-header h1{margin:0}
-  .rank-summary{font-size:12px;color:var(--accent-text);font-weight:600;background:rgba(255,255,255,.04);padding:8px 12px;border-radius:999px;border:1px solid var(--accent-border)}
+  .rank-summary{font-size:12px;color:var(--accent-text);font-weight:600;background:rgba(255,255,255,.04);padding:8px 12px;border-radius:999px;border:1px solid var(--accent-border);white-space:nowrap}
   .rank-section{background:rgba(19,19,26,.7);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:16px;margin-bottom:16px}
   .rank-section-title{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:#7a7a8c;font-weight:700;margin-bottom:12px}
 
@@ -905,6 +911,11 @@
       Zakończ trening
     </button>
     <div style="height:140px"></div>
+
+    <!-- Floating AI Chat Button (CEL 5) -->
+    <button class="fab" id="wkFabChat" onclick="openWorkoutChat()" aria-label="AI Asystent treningowy" style="bottom:calc(120px + env(safe-area-inset-bottom));right:18px;background:linear-gradient(135deg,var(--accent-start),var(--accent-end));box-shadow:0 0 36px var(--glow),0 8px 22px var(--glow)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h8M8 14h5"/></svg>
+    </button>
   </section>
 
   <!-- ============ WORKOUT DETAIL ============ -->
@@ -1062,6 +1073,10 @@
       <div class="row-toggle">
         <div class="row-toggle-label">Wibracje po przerwie</div>
         <div class="toggle on" id="tgVibe" data-testid="tg-vibe" onclick="toggleClick(this)"></div>
+      </div>
+      <div class="row-toggle">
+        <div class="row-toggle-label">Powiadomienia push (gdy aplikacja w tle)</div>
+        <div class="toggle on" id="tgPush" data-testid="tg-push" onclick="toggleClick(this)"></div>
       </div>
     </div>
 
@@ -1706,8 +1721,18 @@ const LS = {
   workouts: 'workouts',
   customEx: 'custom_exercises',
   prPrefix: 'pr_',
-  weeklyPlan: 'weekly_plan'
+  weeklyPlan: 'weekly_plan',
+  // NOWE — System rang (XP)
+  rankXP: 'cal_rank_xp',
+  rankHistory: 'cal_rank_history',
+  // NOWE — Statystyki treningowe i historia ćwiczeń
+  exerciseHistory: 'cal_ex_history',
+  // NOWE — Surowy tekst planu tygodniowego (do re-edycji)
+  weeklyPlanRaw: 'cal_weekly_raw',
+  // NOWE — Kontekst AI
+  aiChatContext: 'cal_ai_context'
 };
+const KAWCIA_DATA_VERSION = '2.0.0';
 
 /* =================== UPDATE SYSTEM =================== */
 const APP_VERSION = '1.0.0';
@@ -1814,6 +1839,7 @@ function showScreen(name){
   if(name==='workout-week') renderWeeklySchedule();
   if(name==='workout-create') { renderWorkoutCreate(); renderTemplates(); }
   if(name==='workout-active') renderActiveWorkout();
+  if(name==='workout-detail') renderWorkoutDetail();
   if(name==='exercise-lib') renderExerciseLib();
   if(name==='ranks') renderRanksScreen();
   if(name==='achievements') renderAchievementsScreen();
@@ -1846,6 +1872,7 @@ function loadSettingsForm(){
   document.getElementById('restDur').value = String(s.restDur||90);
   document.getElementById('tgSound').classList.toggle('on', s.restSound!==false);
   document.getElementById('tgVibe').classList.toggle('on', s.restVibe!==false);
+  document.getElementById('tgPush').classList.toggle('on', s.restPush!==false);
   document.getElementById('tgKnowledgeBase').classList.toggle('on', s.useKnowledgeBase === true);
   const au = localStorage.getItem(LS_AUTO_UPDATE);
   document.getElementById('tgAutoUpdate').classList.toggle('on', au!=='false');
@@ -1875,6 +1902,7 @@ function saveSettings(){
     restDur: parseInt(document.getElementById('restDur').value)||90,
     restSound: document.getElementById('tgSound').classList.contains('on'),
     restVibe: document.getElementById('tgVibe').classList.contains('on'),
+    restPush: document.getElementById('tgPush').classList.contains('on'),
     useKnowledgeBase: document.getElementById('tgKnowledgeBase').classList.contains('on')
   };
   setSettings(s);
@@ -2781,9 +2809,31 @@ async function sendAiChat(){
       searchContext = await webSearch(text);
     }
 
+    // Pobierz kontekst treningowy (jeśli otwarty z treningu)
+    let workoutContext = '';
+    try {
+      const ctxRaw = localStorage.getItem(LS.aiChatContext);
+      if(ctxRaw){
+        const ctx = JSON.parse(ctxRaw);
+        if(ctx.workout){
+          workoutContext = `\n\n--- KONTEKST TRENINGOWY ---\nAktualny trening: ${ctx.workout.name}\nĆwiczenia:\n${ctx.workout.exercises.map(e => `  - ${e.nazwa} (${(e.grupy||[]).join(', ')})` + (e.sets && e.sets.length ? ` — wykonane serie: ${e.sets.map(s=>`${s.reps}×${s.weight}kg`).join(', ')}` : '')).join('\n')}`;
+          if(ctx.prs && Object.keys(ctx.prs).length){
+            workoutContext += `\n\nRekordy osobiste (PR):\n${Object.entries(ctx.prs).map(([n,p])=>`  - ${n}: ${p.weight}kg × ${p.reps}`).join('\n')}`;
+          }
+          if(ctx.goals){
+            workoutContext += `\n\nCele użytkownika: ${ctx.goals.cal} kcal | B ${ctx.goals.p}g T ${ctx.goals.f}g W ${ctx.goals.c}g`;
+          }
+          if(ctx.profile){
+            workoutContext += `\nProfil: ${ctx.profile.gender==='M'?'Mężczyzna':'Kobieta'}, ${ctx.profile.age} lat, ${ctx.profile.height}cm, ${ctx.profile.weight}kg`;
+          }
+        }
+      }
+    } catch(e) {}
+
     // Budujemy pełny prompt z historią konwersacji
     const systemMsg = 'Jesteś pomocnym asystentem fitness i żywienia. Odpowiadasz po polsku. Gdy użytkownik pyta o konkretny produkt lub posiłek, podaj jego dokładne wartości odżywcze. Bądź konkretny i pomocny.' +
-      (searchContext ? `\n\nAktualne dane z wyszukiwania:\n${searchContext}` : '');
+      (searchContext ? `\n\nAktualne dane z wyszukiwania:\n${searchContext}` : '') +
+      workoutContext;
     const historyLines = aiChatHistory.slice(0,-1).map(m =>
       (m.role === 'user' ? 'Użytkownik' : 'Asystent') + ': ' + m.content
     ).join('\n');
@@ -3609,6 +3659,231 @@ function getRankForRatio(ratio){
   return rank;
 }
 
+/* =================== SYSTEM XP (oparty na faktycznych treningach) =================== */
+// Rangi wg wymagań CAL-1 (XP-based). Zachowujemy też stary sistem ratio-based (dla per-ćwiczenia).
+const RANK_XP_TIERS = [
+  {id:'iron',     name:'Iron',     emoji:'🔩', xp:0,      color:'#5a5a5a', glow:'rgba(90,90,90,0.4)'},
+  {id:'bronze',   name:'Bronze',   emoji:'🥉', xp:1000,   color:'#cd7f32', glow:'rgba(205,127,50,0.4)'},
+  {id:'silver',   name:'Silver',   emoji:'🥈', xp:3000,   color:'#c0c0c0', glow:'rgba(192,192,192,0.4)'},
+  {id:'gold',     name:'Gold',     emoji:'🥇', xp:7000,   color:'#ffd700', glow:'rgba(255,215,0,0.4)'},
+  {id:'platinum', name:'Platinum', emoji:'💎', xp:15000,  color:'#3eb489', glow:'rgba(62,180,137,0.4)'},
+  {id:'diamond',  name:'Diamond',  emoji:'🔷', xp:30000,  color:'#3b82f6', glow:'rgba(59,130,246,0.4)'},
+  {id:'master',   name:'Master',   emoji:'🏆', xp:60000,  color:'#a855f7', glow:'rgba(168,85,247,0.4)'},
+  {id:'legend',   name:'Legend',   emoji:'👑', xp:100000, color:'#f59e0b', glow:'rgba(245,158,11,0.4)'}
+];
+
+// Grupy mięśniowe wspierane w XP
+const XP_GROUPS = ['klatka','plecy','nogi','barki','biceps','triceps','brzuch','lydki','posladki'];
+
+function getRankXP(){
+  try {
+    const v = JSON.parse(localStorage.getItem(LS.rankXP));
+    if(v && typeof v === 'object') {
+      if(!v.byGroup) v.byGroup = {};
+      // migracja — uzupełnij brakujące grupy
+      XP_GROUPS.forEach(g => { if(typeof v.byGroup[g]!=='number') v.byGroup[g] = 0; });
+      if(typeof v.total!=='number') v.total = 0;
+      return v;
+    }
+  } catch(e){}
+  return { total: 0, byGroup: {} };
+}
+function setRankXP(xp){ localStorage.setItem(LS.rankXP, JSON.stringify(xp)); }
+
+function getRankHistory(){
+  try { return JSON.parse(localStorage.getItem(LS.rankHistory)) || []; } catch(e) { return []; }
+}
+function setRankHistory(arr){ localStorage.setItem(LS.rankHistory, JSON.stringify(arr)); }
+
+function getTierForXP(xp){
+  let tier = RANK_XP_TIERS[0];
+  for(const t of RANK_XP_TIERS){
+    if(xp >= t.xp) tier = t;
+    else break;
+  }
+  return tier;
+}
+function getNextTierForXP(xp){
+  for(const t of RANK_XP_TIERS){
+    if(xp < t.xp) return t;
+  }
+  return null; // max ranga
+}
+function getTierIndex(tierId){
+  return RANK_XP_TIERS.findIndex(t => t.id === tierId);
+}
+
+// Oblicz XP zdobyte z pojedynczego treningu
+// Zwraca: { total, byGroup, prs, timeBonus, varietyBonus, regularityBonus }
+function computeWorkoutXP(workout, rankSnapBefore, prev_PRs){
+  if(!workout || !workout.exercises) return _emptyXP();
+  // Bazowe XP = suma(serie × powtórzenia × ciężar)/100 → objętość / 100
+  let baseXP = 0;
+  const volByGroup = {};
+  const groupsInWk = new Set();
+  for(const ex of workout.exercises){
+    const groups = (ex.grupy && ex.grupy.length) ? ex.grupy : [];
+    let exVol = 0;
+    for(const st of (ex.sets || [])){
+      // Licz tylko wykonane serie (lub — fallback — wszystkie z danymi)
+      const isCounted = (st.done===true) || (st.done===undefined && (Number(st.reps)||0)>0 && (Number(st.weight)||0)>0);
+      if(!isCounted) continue;
+      const reps = Number(st.reps) || 0;
+      const weight = Number(st.weight) || 0;
+      exVol += reps * weight;
+    }
+    baseXP += exVol / 100;
+    for(const g of groups){
+      volByGroup[g] = (volByGroup[g]||0) + exVol;
+      groupsInWk.add(g);
+    }
+  }
+
+  // Bonus za PR — +50 XP za każdy NOWY rekord (sprawdzamy z przekazaną listą PRions)
+  let prBonus = 0;
+  const prList = Array.isArray(prev_PRs) ? prev_PRs : [];
+  if(prList.length) prBonus = 50 * prList.length;
+
+  // Bonus za regularność — +10% XP za każdy kolejny trening w tygodniu (max +50%)
+  // rankSnapBefore.withinWeekBonus = liczba treningów w tym tygodniu PRZED tym (dla prostoty — liczymy tu)
+  let regularityPct = 0;
+  const wks = getWorkouts();
+  const monday = _getMondayOf(new Date());
+  const wkCount = wks.filter(w => {
+    const wd = new Date(w.ts || (w.date ? w.date+'T00:00:00' : 0));
+    return wd >= monday && wd < new Date(monday.getTime() + 7*24*3600*1000);
+  }).length;
+  // dodatkowy dla aktualnego treningu
+  const extra = Math.min(5, Math.max(0, wkCount)); // każdy kolejny +10% (0→0, 1→+10, ... max +50%)
+  if(extra > 0){
+    regularityPct = Math.min(50, extra * 10);
+    baseXP = baseXP * (1 + regularityPct/100);
+  }
+
+  // Bonus za różnorodność — +20 XP za każdą unikalną grupę mięśniową w treningu
+  const varietyBonus = groupsInWk.size * 20;
+
+  // Bonus za czas — +1 XP za każdą minutę treningu (max +60)
+  const durSec = Number(workout.duration) || 0;
+  const timeBonus = Math.min(60, Math.floor(durSec / 60)); // 1 XP / min
+
+  // Rozdziel XP na grupy proporcjonalnie do wolumenu (ignoruj grupy spoza XP_GROUPS)
+  const total = Math.round(baseXP) + prBonus + varietyBonus + timeBonus;
+  const byGroup = {};
+  let sumVol = 0;
+  XP_GROUPS.forEach(g => { sumVol += (volByGroup[g]||0); });
+  if(sumVol <= 0){
+    // jeśli nie ma wolumenu (np. cardio), rozdziel równo pośród obecnych grup
+    const present = XP_GROUPS.filter(g => groupsInWk.has(g));
+    if(present.length){
+      const each = Math.floor(total / present.length);
+      present.forEach(g => byGroup[g] = each);
+    }
+  } else {
+    XP_GROUPS.forEach(g => {
+      const v = volByGroup[g] || 0;
+      if(v > 0) byGroup[g] = Math.round((v / sumVol) * total);
+    });
+  }
+
+  return {
+    total, byGroup, prBonus, prCount: prList.length,
+    varietyBonus, timeBonus, regularityPct, groups: Array.from(groupsInWk)
+  };
+}
+function _emptyXP(){
+  return { total:0, byGroup:{}, prBonus:0, prCount:0, varietyBonus:0, timeBonus:0, regularityPct:0, groups:[] };
+}
+function _getMondayOf(d){
+  const x = new Date(d);
+  x.setHours(0,0,0,0);
+  const day = x.getDay(); // 0=niedziela
+  const diff = (day + 6) % 7; // przesuń tak, aby poniedziałek = 0
+  x.setDate(x.getDate() - diff);
+  return x;
+}
+
+// Aplikuj XP do storage, zwróć listę awansów (per grupa + total)
+function applyWorkoutXP(xpObj){
+  const cur = getRankXP();
+  const ups = [];
+  // Per-grupa
+  for(const g of XP_GROUPS){
+    const before = cur.byGroup[g] || 0;
+    const add = xpObj.byGroup[g] || 0;
+    if(add <= 0) continue;
+    const after = before + add;
+    const oldTier = getTierForXP(before);
+    const newTier = getTierForXP(after);
+    cur.byGroup[g] = after;
+    if(getTierIndex(newTier.id) > getTierIndex(oldTier.id)){
+      ups.push({ kind:'group', group:g, oldTier, newTier, xpBefore:before, xpAfter:after, gained:add });
+    }
+  }
+  // Total
+  const totalBefore = cur.total || 0;
+  const totalAfter = totalBefore + (xpObj.total || 0);
+  const oldTotalTier = getTierForXP(totalBefore);
+  const newTotalTier = getTierForXP(totalAfter);
+  cur.total = totalAfter;
+  if(getTierIndex(newTotalTier.id) > getTierIndex(oldTotalTier.id)){
+    ups.push({ kind:'total', oldTier:oldTotalTier, newTier:newTotalTier, xpBefore:totalBefore, xpAfter:totalAfter, gained:xpObj.total||0 });
+  }
+  setRankXP(cur);
+  // Zapisz historię awansów
+  if(ups.length){
+    const hist = getRankHistory();
+    const stamp = new Date().toISOString();
+    ups.forEach(up => {
+      hist.unshift({
+        date: stamp,
+        kind: up.kind,
+        group: up.group || null,
+        oldRank: up.oldTier.id,
+        newRank: up.newTier.id,
+        xpBefore: up.xpBefore,
+        xpAfter: up.xpAfter,
+        gained: up.gained
+      });
+    });
+    // cap historii (300 ostatnich)
+    if(hist.length > 300) hist.length = 300;
+    setRankHistory(hist);
+  }
+  return ups;
+}
+
+function showRankUpToastV2(up){
+  const el = document.getElementById('rankUpToast');
+  const title = up.kind === 'total'
+    ? 'Cała sylwetka'
+    : (EX_GROUP_LABEL[up.group] || up.group);
+  document.getElementById('rankUpToastTitle').textContent = title;
+  document.getElementById('rankUpToastRank').textContent = up.newTier.name;
+  document.getElementById('rankUpToastOld').textContent = `z ${up.oldTier.name}`;
+  el.style.setProperty('--rank-color', up.newTier.color);
+  el.style.setProperty('--rank-glow', up.newTier.glow);
+  el.classList.add('show');
+  vibrate([80,60,80,60,120]);
+  if(window.confetti){
+    confetti({particleCount:120, spread:120, origin:{y:0.5},
+      colors:[up.newTier.color, '#ffffff', up.oldTier.color]});
+  }
+  // powiadomienie push (jeśli dozwolone)
+  try {
+    if('Notification' in window && Notification.permission === 'granted'){
+      const n = new Notification('🎉 Awans w KAWCIA!', {
+        body: `${title} osiągnęło rangę ${up.newTier.name}!`,
+        tag: 'rank-up-'+Date.now(),
+        silent: true
+      });
+      setTimeout(()=>n.close(), 4000);
+    }
+  } catch(e){}
+  setTimeout(()=>el.classList.remove('show'), 2800);
+}
+
+
 function getStandardMultiplier(){
   const p = getUserProfile();
   if(!p) return {gender:1, weight:1, height:1, total:1};
@@ -3699,21 +3974,43 @@ function renderRanksScreen(){
     return;
   }
 
-  // grupy
-  const groupRanks = {};
-  let bestRank = RANKS[0];
-  for(const g of Object.keys(RANK_MUSCLE_MAP)){
-    const gr = getGroupRank(g);
-    groupRanks[g] = gr;
-    if(gr.rank.threshold > bestRank.threshold) bestRank = gr.rank;
-  }
-  summary.textContent = 'Najwyższa: ' + bestRank.name;
+  // ---- XP-based ranks per group ----
+  const xpData = getRankXP();
+  const groupRanksXP = {};
+  let bestXPTier = RANK_XP_TIERS[0];
+  let totalXP = xpData.total || 0;
+  let totalWorkouts = getWorkouts().length;
+  let totalVolume = 0;
+  getWorkouts().forEach(w => {
+    totalVolume += (w.exercises||[]).reduce((a,e)=>a+(e.sets||[]).filter(s=>s.done).reduce((s,st)=>s+(Number(st.reps)||0)*(Number(st.weight)||0),0),0);
+  });
+  const avgVolume = totalWorkouts ? Math.round(totalVolume/totalWorkouts) : 0;
 
-  // sylwetka
+  for(const g of XP_GROUPS){
+    const xp = xpData.byGroup[g] || 0;
+    const tier = getTierForXP(xp);
+    const nextTier = getNextTierForXP(xp);
+    const progress = nextTier ? Math.min(100, Math.round((xp - tier.xp) / (nextTier.xp - tier.xp) * 100)) : 100;
+    const recentHistory = getRankHistory().filter(h => h.kind === 'group' && h.group === g).slice(0, 5);
+    const groupPRs = getGroupPRs(g);
+    const bestPR = groupPRs.length ? Math.max(...groupPRs.map(p => p.weight || 0)) : 0;
+
+    groupRanksXP[g] = { xp, tier, nextTier, progress, recentHistory, groupPRs, bestPR };
+    if(tier.xp > bestXPTier.xp) bestXPTier = tier;
+  }
+
+  summary.innerHTML = `
+    <span style="display:inline-flex;align-items:center;gap:6px">
+      <span style="font-size:16px">${bestXPTier.emoji}</span>
+      <span>Najwyższa: <b>${bestXPTier.name}</b></span>
+    </span>
+  `;
+
+  // sylwetka - koloryzuj po XP-based tier
   if(silhouette){
     for(const g of Object.keys(RANK_MUSCLE_MAP)){
       const ids = RANK_MUSCLE_MAP[g];
-      const color = groupRanks[g].rank.color;
+      const color = groupRanksXP[g]?.tier?.color || '#5a5a5a';
       ids.forEach(id=>{
         const el = silhouette.querySelector('#'+id);
         if(el) el.style.fill = color;
@@ -3721,33 +4018,109 @@ function renderRanksScreen(){
     }
   }
 
-  // lista wszystkich ćwiczeń
+  // ---- Lista grup mięśniowych z paskami XP ----
   list.innerHTML = '';
-  const all = allExercises().slice().sort((a,b)=>{
-    const va = getExerciseRank(a.nazwa).vol;
-    const vb = getExerciseRank(b.nazwa).vol;
-    if(vb !== va) return vb - va;
-    return a.nazwa.localeCompare(b.nazwa);
-  });
-  all.forEach((e,i)=>{
-    const er = getExerciseRank(e.nazwa);
-    const rank = er && er.rank ? er.rank : null;
+  const listContainer = document.createElement('div');
+  listContainer.style.marginTop = '16px';
+  XP_GROUPS.forEach((g, i)=>{
+    const data = groupRanksXP[g];
+    const tier = data.tier;
+    const next = data.nextTier;
     const item = document.createElement('div');
     item.className = 'rank-item';
-    item.style.setProperty('--rank-color', rank ? rank.color : '#5a5a5a');
-    item.style.setProperty('--rank-glow', rank ? rank.glow : 'rgba(90,90,90,0.4)');
+    item.style.setProperty('--rank-color', tier.color);
+    item.style.setProperty('--rank-glow', tier.glow);
     item.style.animation = 'fadeInLeft .3s ease both';
-    item.style.animationDelay = (i*20)+'ms';
+    item.style.animationDelay = (i*30)+'ms';
+
+    const historyHTML = data.recentHistory.length ? `
+      <div style="margin-top:6px;padding:6px 8px;background:rgba(255,255,255,.03);border-radius:8px;font-size:10px;color:#7a7a8c">
+        <div style="font-weight:600;color:var(--accent-text);margin-bottom:3px">Ostatnie awansy / aktywność:</div>
+        ${data.recentHistory.map(h => `
+          <div style="display:flex;justify-content:space-between;gap:8px">
+            <span>${fmtDate(h.date.split('T')[0])}</span>
+            <span style="color:${h.newRank ? RANK_XP_TIERS.find(t=>t.id===h.newRank)?.color : '#7a7a8c'}">${h.newRank ? RANK_XP_TIERS.find(t=>t.id===h.newRank)?.name.toUpperCase() : 'XP: +'+h.gained}</span>
+          </div>
+        `).join('')}
+      </div>` : '';
+
+    const prHTML = data.bestPR ? `
+      <div style="margin-top:6px;padding:6px 8px;background:rgba(251,191,36,.1);border-radius:8px;font-size:11px;color:#fbbf24;display:flex;justify-content:space-between">
+        <span>🏆 Najwyższy PR w grupie</span>
+        <strong>${data.bestPR} kg</strong>
+      </div>` : '';
+
     item.innerHTML = `
-      <div class="rank-item-emoji">${e.emoji||EX_GROUP_EMOJI[e.grupy[0]]||'💪'}</div>
-      <div class="rank-item-info">
-        <div class="rank-item-name">${escapeHtml(e.nazwa)}</div>
-        <div class="rank-item-meta">${formatRankVol(er.vol)} / ${formatRankVol(er.std)} kg·rep · ${EX_GROUP_LABEL[e.grupy[0]]||e.grupy[0]}</div>
+      <div class="rank-item-emoji">${EX_GROUP_EMOJI[g]||'💪'}</div>
+      <div class="rank-item-info" style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="rank-item-name" style="flex:1;min-width:0">${EX_GROUP_LABEL[g]||g}</div>
+          <div class="rank-badge-inline" style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:${tier.color};background:color-mix(in srgb, ${tier.color} 15%, transparent);padding:3px 8px;border-radius:999px;border:1.5px solid color-mix(in srgb, ${tier.color} 50%, transparent)">${tier.emoji} ${tier.name.toUpperCase()}</div>
+        </div>
+        <div class="rank-item-meta" style="margin-top:6px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
+              <div style="width:${data.progress}%;height:100%;background:${tier.color};border-radius:3px;transition:width .6s ease;box-shadow:0 0 8px ${tier.color}"></div>
+            </div>
+            <span style="font-size:11px;color:${tier.color};font-weight:700;white-space:nowrap">${formatXP(data.xp)} / ${formatXP(next?.xp || tier.xp)} XP</span>
+          </div>
+        </div>
+        ${historyHTML}
+        ${prHTML}
       </div>
-      <div class="rank-item-badge">${rank ? rank.name.toUpperCase() : 'UNRANKED'}</div>
     `;
-    list.appendChild(item);
+    listContainer.appendChild(item);
   });
+  list.appendChild(listContainer);
+
+  // Podsumowanie globalne na dole
+  const summaryEl = document.createElement('div');
+  summaryEl.className = 'card';
+  summaryEl.style.marginTop = '16px';
+  summaryEl.innerHTML = `
+    <div class="section-title" style="margin-top:0">📊 Podsumowanie globalne</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center">
+      <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:14px">
+        <div style="font-size:10px;color:#7a7a8c;text-transform:uppercase;letter-spacing:.5px">Całkowity XP</div>
+        <div style="font-size:24px;font-weight:800;color:var(--accent-text-2);margin-top:4px">${formatXP(totalXP)}</div>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:14px">
+        <div style="font-size:10px;color:#7a7a8c;text-transform:uppercase;letter-spacing:.5px">Liczba treningów</div>
+        <div style="font-size:24px;font-weight:800;color:var(--accent-text);margin-top:4px">${totalWorkouts}</div>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:14px">
+        <div style="font-size:10px;color:#7a7a8c;text-transform:uppercase;letter-spacing:.5px">Średni wolumen</div>
+        <div style="font-size:24px;font-weight:800;color:#22c55e;margin-top:4px">${avgVolume} kg</div>
+      </div>
+    </div>
+  `;
+  list.appendChild(summaryEl);
+}
+
+function formatXP(xp){
+  if(xp >= 1000000) return (xp/1000000).toFixed(1)+'M';
+  if(xp >= 1000) return (xp/1000).toFixed(1)+'k';
+  return String(xp);
+}
+
+function getGroupPRs(group){
+  // Znajdź wszystkie PR dla ćwiczeń danej grupy
+  const prs = [];
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith(LS.prPrefix)){
+      try{
+        const val = JSON.parse(localStorage.getItem(k));
+        const name = k.replace(LS.prPrefix, '').replace(/_/g,' ');
+        // sprawdź czy to ćwiczenie należy do grupy
+        const ex = allExercises().find(e => e.nazwa.toLowerCase() === name.toLowerCase());
+        if(ex && ex.grupy && ex.grupy.includes(group)){
+          prs.push({name, weight: val.weight, reps: val.reps, date: val.date});
+        }
+      }catch(e){}
+    }
+  }
+  return prs;
 }
 
 function getRankIndex(rankId){
@@ -3986,7 +4359,37 @@ function getWeeklyPlan(){
   try{ return JSON.parse(localStorage.getItem(LS.weeklyPlan))||{}; }catch(e){ return {}; }
 }
 function setWeeklyPlan(p){ localStorage.setItem(LS.weeklyPlan, JSON.stringify(p)); }
-function getWeekDay(key){ return (getWeeklyPlan()[key]||[]); }
+function getWeekDay(key){ const d = getWeeklyPlan()[key]; if(!d) return []; return Array.isArray(d) ? d : (d.exercises || []); }
+
+/* ---- Nowe funkcje do obsługi dat ISO i statusu dnia ---- */
+function getWeeklyPlanWithDates(){
+  const plan = getWeeklyPlan();
+  // Upewnij się, że każdy dzień ma pole 'date' (ISO) i 'completed'
+  const now = new Date();
+  const todayIdx = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((todayIdx+6)%7));
+  WEEK_DAYS.forEach((d, i) => {
+    const dayDate = new Date(monday);
+    dayDate.setDate(monday.getDate() + i);
+    const iso = dayDate.toISOString().split('T')[0];
+    if(plan[d.key]){
+      if(!plan[d.key]._meta) plan[d.key]._meta = {};
+      if(!plan[d.key]._meta.date) plan[d.key]._meta.date = iso;
+      if(typeof plan[d.key]._meta.completed !== 'boolean') plan[d.key]._meta.completed = false;
+    }
+  });
+  setWeeklyPlan(plan); // zapisz uzupełnione
+  return plan;
+}
+
+function setWeekDayCompleted(key, completed){
+  const plan = getWeeklyPlan();
+  if(!plan[key]) plan[key] = {_meta: {}};
+  if(!plan[key]._meta) plan[key]._meta = {};
+  plan[key]._meta.completed = completed;
+  setWeeklyPlan(plan);
+}
 
 function renderWeeklySchedule(){
   const activeCard = document.getElementById('weekActiveCard');
@@ -3999,7 +4402,7 @@ function renderWeeklySchedule(){
 
   const wrap = document.getElementById('weekDayBlocks');
   if(!wrap) return;
-  const plan = getWeeklyPlan();
+  const plan = getWeeklyPlanWithDates(); // uzupełnia daty i completed
   const todayKey = JS_DAY_MAP[new Date().getDay()];
 
   const now = new Date();
@@ -4012,18 +4415,21 @@ function renderWeeklySchedule(){
     const dayDate = new Date(monday);
     dayDate.setDate(monday.getDate() + i);
     const dateStr = dayDate.toLocaleDateString('pl-PL',{day:'numeric',month:'short'});
-    const exercises = plan[d.key] || [];
+    const dayData = plan[d.key] || {};
+    const exercises = Array.isArray(dayData) ? dayData : (dayData.exercises || []);
+    const meta = dayData._meta || {};
     const isToday = d.key === todayKey;
+    const isCompleted = meta.completed === true;
+    const isoDate = meta.date || dayDate.toISOString().split('T')[0];
 
     const preview = exercises.map(e=>e.emoji||'💪').slice(0,5).join(' ');
     const names = exercises.map(e=>e.nazwa).join(', ');
 
     const div = document.createElement('div');
-    div.className = 'week-day-block' + (isToday ? ' today' : '');
-    div.onclick = () => {
-      selectedWeekDay = d.key;
-      showScreen('workout');
-    };
+    div.className = 'week-day-block' + (isToday ? ' today' : '') + (isCompleted ? ' completed' : '');
+    div.dataset.dayKey = d.key;
+    div.dataset.isoDate = isoDate;
+
     div.innerHTML = `
       <div class="week-day-block-left">
         <div class="week-day-block-name">${d.short}</div>
@@ -4033,12 +4439,32 @@ function renderWeeklySchedule(){
         ${exercises.length > 0
           ? `<div class="week-day-block-ex-count">${preview} ${exercises.length} ćwiczeń</div>
              <div class="week-day-block-ex-preview">${escapeHtml(names)}</div>`
-          : ``
+          : `<div class="week-day-block-empty">Brak planu</div>`
         }
       </div>
-      <svg class="week-day-block-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+      <div class="week-day-block-actions">
+        ${exercises.length > 0 ? `
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();startDayWorkout('${d.key}')" style="padding:6px 10px;font-size:11px">
+            Rozpocznij
+          </button>
+        ` : ''}
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();toggleDayCompleted('${d.key}')" style="padding:6px 10px;font-size:11px">
+          ${isCompleted ? '✓ Zrobione' : 'Oznacz'}
+        </button>
+        <svg class="week-day-block-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>`;
     wrap.appendChild(div);
   });
+}
+
+function toggleDayCompleted(key){
+  const plan = getWeeklyPlan();
+  const dayData = plan[key] || {};
+  const meta = dayData._meta || {};
+  const newCompleted = !meta.completed;
+  setWeekDayCompleted(key, newCompleted);
+  renderWeeklySchedule();
+  toast(newCompleted ? 'Dzień oznaczony jako wykonany ✓' : 'Dzień oznaczony jako do zrobienia', 'info');
 }
 
 async function submitWeeklyPlanAi(){
@@ -4102,6 +4528,44 @@ ${desc}`;
 /* =================== WORKOUTS =================== */
 function getWorkouts(){ try{return JSON.parse(localStorage.getItem(LS.workouts))||[]}catch(e){return[]} }
 function setWorkouts(arr){ localStorage.setItem(LS.workouts, JSON.stringify(arr)); }
+
+/* =================== EXERCISE HISTORY (per-ćwiczenie, dla wykresów) =================== */
+function getExerciseHistoryMap(){
+  try { return JSON.parse(localStorage.getItem(LS.exerciseHistory)) || {}; } catch(e){ return {}; }
+}
+function setExerciseHistoryMap(m){ localStorage.setItem(LS.exerciseHistory, JSON.stringify(m)); }
+function getExerciseHistory(name){
+  const m = getExerciseHistoryMap();
+  return m[this._normalizeName ? this._normalizeName(name) : _exHistKey(name)] || [];
+}
+function _exHistKey(name){ return String(name||'').trim(); }
+
+// Zapisz rekordy danego ćwiczenia (data, serie, max ciężar, objętość). Wywoływane przy saveCompletedWorkout.
+function recordExerciseHistory(workout){
+  const m = getExerciseHistoryMap();
+  const date = workout.date || todayKey();
+  const ts = workout.ts || Date.now();
+  for(const ex of (workout.exercises || [])){
+    const key = _exHistKey(ex.nazwa);
+    if(!key) continue;
+    const sets = (ex.sets || []).filter(s => s.done && (Number(s.reps)||0) > 0 && (Number(s.weight)||0) > 0);
+    if(sets.length === 0) continue;
+    const entry = {
+      date, ts,
+      sets: sets.map(s => ({ reps: Number(s.reps)||0, weight: Number(s.weight)||0 })),
+      volume: sets.reduce((a,s) => a + (Number(s.reps)||0) * (Number(s.weight)||0), 0),
+      maxWeight: Math.max(...sets.map(s => Number(s.weight)||0))
+    };
+    if(!m[key]) m[key] = [];
+    m[key].push(entry);
+    // cap 300 rekordów na ćwiczenie
+    if(m[key].length > 300) m[key] = m[key].slice(-300);
+  }
+  setExerciseHistoryMap(m);
+}
+function getExerciseEntries(name){
+  return getExerciseHistoryMap()[_exHistKey(name)] || [];
+}
 
 let workoutDraft = null; // tworzenie
 let currentWorkout = null; // aktywny
@@ -4233,32 +4697,258 @@ function deleteWorkout(id){
   renderWorkoutHome();
   vibrate(15);
 }
+let _activeWorkoutDetailId = null;
+let _activeExDetailName = null; // dla modal ex-detail (rozszerzony)
 function openWorkoutDetail(id){
-  const w = getWorkouts().find(x=>x.id===id);
-  if(!w) return;
+  _activeWorkoutDetailId = id;
+  renderWorkoutDetail();
+}
+function renderWorkoutDetail(){
+  if(!_activeWorkoutDetailId){ showScreen('workout'); return; }
+  const w = getWorkouts().find(x=>x.id===_activeWorkoutDetailId);
+  if(!w){ _activeWorkoutDetailId = null; showScreen('workout'); return; }
+  const exCnt = (w.exercises||[]).length;
+  const setsCnt = (w.exercises||[]).reduce((a,e)=>a+(e.sets||[]).length,0);
+  const vol = (w.exercises||[]).reduce((a,e)=>a+(e.sets||[]).filter(s=>s.done).reduce((s,st)=>s+(Number(st.reps)||0)*(Number(st.weight)||0),0),0);
+  const prCount = (w._newPRs || []).length;
+
   const html = `
     <div class="header" style="padding-top:0">
       <h1>${escapeHtml(w.name||'Trening')}</h1>
+      <div class="header-date">${fmtDate(w.date)} · ⏱ ${fmtDur(w.duration||0)}</div>
     </div>
     <div class="card">
-      <div style="display:flex;justify-content:space-between;color:#7a7a8c;font-size:13px;margin-bottom:14px">
-        <span>${fmtDate(w.date)}</span>
-        <span>⏱ ${fmtDur(w.duration||0)}</span>
-      </div>
-      ${(w.exercises||[]).map(ex=>`
-        <div style="margin-bottom:18px">
-          <div style="font-weight:700;font-size:15px;margin-bottom:6px">${ex.emoji||'💪'} ${escapeHtml(ex.nazwa)}</div>
-          ${(ex.sets||[]).length===0?'<div style="font-size:12px;color:#5b5b6e">brak serii</div>':
-            '<div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;font-size:13px">'+
-            (ex.sets||[]).map((s,i)=>`<div style="color:#7a7a8c">${i+1}.</div><div>${s.reps||0} powt.</div><div>${s.weight||0} kg</div>`).join('')+
-            '</div>'}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px">
+        <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#7a7a8c;text-transform:uppercase;letter-spacing:.8px">Ćwiczenia</div>
+          <div style="font-size:22px;font-weight:800;color:var(--accent-text)">${exCnt}</div>
         </div>
-      `).join('')}
+        <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#7a7a8c;text-transform:uppercase;letter-spacing:.8px">Serie</div>
+          <div style="font-size:22px;font-weight:800;color:var(--accent-text)">${setsCnt}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#7a7a8c;text-transform:uppercase;letter-spacing:.8px">Wolumen</div>
+          <div style="font-size:22px;font-weight:800;color:var(--accent-text-2)">${Math.round(vol)}<span style="font-size:12px;color:#7a7a8c"> kg</span></div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#7a7a8c;text-transform:uppercase;letter-spacing:.8px">Nowe PR</div>
+          <div style="font-size:22px;font-weight:800;color:#fbbf24">${prCount} 🏆</div>
+        </div>
+      </div>
     </div>
+    <div class="section-title">Ćwiczenia w treningu</div>
+    ${(w.exercises||[]).map((ex, idx) => {
+      const exSets = (ex.sets||[]).filter(s=>s.done);
+      const exVol = exSets.reduce((a,s)=>a+(Number(s.reps)||0)*(Number(s.weight)||0),0);
+      const maxW = exSets.length ? Math.max(...exSets.map(s=>Number(s.weight)||0)) : 0;
+      const pr = getPR(ex.nazwa);
+      return `
+        <div class="exercise-card" style="cursor:pointer" onclick="openExDetailByName(${JSON.stringify(ex.nazwa).replace(/"/g,'"')})">
+          <div class="ex-head">
+            <div class="ex-emoji">${ex.emoji||'💪'}</div>
+            <div class="ex-name">
+              <div>${escapeHtml(ex.nazwa)}</div>
+              ${ex.grupy && ex.grupy.length ? `<div class="ex-prev">${ex.grupy.map(g=>EX_GROUP_LABEL[g]||g).join(', ')}</div>` : ''}
+              ${pr ? `<div class="ex-pr">🏆 PR: ${pr.weight}kg × ${pr.reps}</div>` : ''}
+            </div>
+            <div style="color:var(--accent-text);font-size:20px;opacity:.6">›</div>
+          </div>
+          ${exSets.length === 0
+            ? '<div style="font-size:12px;color:#5b5b6e">brak wykonanych serii</div>'
+            : `<div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:6px;font-size:13px;padding:6px 0">
+                <div style="color:#7a7a8c;font-weight:600">#</div>
+                <div style="color:#7a7a8c;font-weight:600">Powt.</div>
+                <div style="color:#7a7a8c;font-weight:600">kg</div>
+                <div style="color:#7a7a8c;font-weight:600">Obj.</div>
+                ${exSets.map((s,i)=>`<div style="color:#7a7a8c">${i+1}.</div><div>${s.reps||0}</div><div>${s.weight||0}</div><div style="color:var(--accent-text-2)">${Math.round((Number(s.reps)||0)*(Number(s.weight)||0))}</div>`).join('')}
+              </div>
+              <div style="font-size:12px;color:var(--accent-text);margin-top:6px;font-weight:600">Objętość: ${Math.round(exVol)} kg · Max: ${maxW} kg</div>`}
+        </div>
+      `;
+    }).join('')}
+    <div style="height:20px"></div>
+    <button class="btn btn-secondary" onclick="copyWorkoutToDraft('${w.id}');showScreen('workout-create')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Powtórz ten trening
+    </button>
   `;
   document.getElementById('wkDetailContent').innerHTML = html;
-  showScreen('workout-detail');
 }
+
+// Otwórz rozszerzony modal szczegółów ćwiczenia (CEL 4.3) po nazwie
+function openExDetailByName(name){
+  _activeExDetailName = name;
+  const e = allExercises().find(x => x.nazwa === name);
+  renderExDetailModal(e, name);
+}
+function renderExDetailModal(e, name){
+  const hist = getExerciseEntries(name);
+  const pr = getPR(name);
+  const all = hist.slice().sort((a,b)=>a.ts-b.ts);
+  const last30 = all.filter(h => (Date.now() - h.ts) < 30*24*3600*1000);
+  const totalSets = all.reduce((a,h)=>a+h.sets.length,0);
+  // wykres ciężaru w czasie
+  let chartWeights = '';
+  let chartVolume = '';
+  if(all.length >= 2){
+    const W = 320, H = 70;
+    const maxW = Math.max(...all.map(h=>h.maxWeight), 1);
+    const minW = Math.min(...all.map(h=>h.maxWeight));
+    const rangeW = Math.max(1, maxW - minW);
+    const maxV = Math.max(...all.map(h=>h.volume), 1);
+    const ptsW = all.map((h,i)=>{
+      const x = 6 + (i/(all.length-1))*(W-12);
+      const y = H - 6 - ((h.maxWeight-minW)/rangeW)*(H-12);
+      return {x,y};
+    });
+    const ptsV = all.map((h,i)=>{
+      const x = 6 + (i/(all.length-1))*(W-12);
+      const y = H - 6 - (h.volume/maxV)*(H-12);
+      return {x,y};
+    });
+    const lineW = ptsW.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
+    const lineV = ptsV.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
+    chartWeights = `
+      <div class="strength-chart" style="margin-top:10px">
+        <div class="strength-chart-head"><div class="strength-chart-title">📈 Maks. ciężar w czasie</div></div>
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+          <path class="sc-line" d="${lineW}"/>
+          ${ptsW.map(p=>`<circle class="sc-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3"/>`).join('')}
+        </svg>
+      </div>`;
+    chartVolume = `
+      <div class="strength-chart">
+        <div class="strength-chart-head"><div class="strength-chart-title">📊 Objętość w czasie</div></div>
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+          <path class="sc-line" d="${lineV}"/>
+          ${ptsV.map(p=>`<circle class="sc-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3"/>`).join('')}
+        </svg>
+      </div>`;
+  } else {
+    chartWeights = `<div class="strength-chart"><div class="sc-empty">Trenuj częściej — wykres pojawi się po ≥2 sesjach</div></div>`;
+    chartVolume = chartWeights;
+  }
+
+  const recentRows = all.slice(-5).reverse().map(h => {
+    return `<div style="font-size:12px;color:#a0a0b0;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+        <span>${fmtDate(h.date)}</span>
+        <span style="color:var(--accent-text-2);font-weight:600">${Math.round(h.volume)} kg</span>
+      </div>
+      <div style="color:#7a7a8c">${h.sets.map(s=>`${s.reps}×${s.weight}kg`).join(' / ')}</div>
+    </div>`;
+  }).join('');
+
+  const groupLabel = e?.grupy?.[0] ? (EX_GROUP_LABEL[e.grupy[0]] || e.grupy[0]) : '';
+  const equipLabel = e?.sprzet ? (EX_EQUIP_LABEL[e.sprzet] || e.sprzet) : '';
+
+  document.getElementById('exDetailContent').innerHTML = `
+    <h2>${e?.emoji||'💪'} ${escapeHtml(name)}</h2>
+    <p>${groupLabel}${equipLabel ? ' · ' + equipLabel : ''}</p>
+    ${e?.opis ? `<div style="background:rgba(255,255,255,.03);padding:12px;border-radius:12px;font-size:13px;color:#c0c0d0;margin-bottom:14px;line-height:1.5">${escapeHtml(e.opis)}</div>` : ''}
+    ${pr ? `<div class="modal-preview"><div>🏆 Twój rekord</div><strong>${pr.weight} kg × ${pr.reps}</strong></div>` : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:10px;text-align:center">
+        <div style="font-size:10px;color:#7a7a8c">Sesje</div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent-text)">${all.length}</div>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:10px;text-align:center">
+        <div style="font-size:10px;color:#7a7a8c">Ostatnie 30 dni</div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent-text)">${last30.length}</div>
+      </div>
+    </div>
+    ${chartWeights}
+    ${chartVolume}
+    ${recentRows ? `<div style="margin:14px 0">
+      <div class="section-title" style="margin:0 0 8px">Ostatnie podejścia</div>
+      ${recentRows}
+    </div>` : ''}
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeExDetail()">Zamknij</button>
+      <button class="btn btn-primary" onclick="addExFromDetailByName(${JSON.stringify(name).replace(/"/g,'"')})">Dodaj do treningu</button>
+    </div>
+  `;
+  document.getElementById('exDetailModal').classList.add('show');
+}
+function addExFromDetailByName(name){
+  closeExDetail();
+  const e = allExercises().find(x => x.nazwa === name);
+  if(!e) return;
+  if(currentWorkout){
+    currentWorkout.exercises.push({nazwa:e.nazwa, grupy:e.grupy, emoji:e.emoji, sets:[]});
+    saveActiveWorkout();
+    toast('Dodano','success');
+    showScreen('workout-active');
+  } else if(workoutDraft){
+    workoutDraft.exercises.push({nazwa:e.nazwa, grupy:e.grupy, emoji:e.emoji, sets:[]});
+    toast('Dodano','success');
+    showScreen('workout-create');
+  } else {
+    if(confirm('Brak aktywnego treningu. Rozpocząć?')){
+      workoutDraft = {name:'Trening', exercises:[{nazwa:e.nazwa, grupy:e.grupy, emoji:e.emoji, sets:[]}]};
+      showScreen('workout-create');
+    }
+  }
+}
+
+/* =================== AI CHAT W TRENINGU (CEL 5) =================== */
+let _workoutChatOpen = false;
+function openWorkoutChat(){
+  if(!currentWorkout){ toast('Brak aktywnego treningu','error'); return; }
+  _workoutChatOpen = true;
+  // Zapisz kontekst treningowy do localStorage (do AI)
+  const s = getSettings();
+  const ctx = {
+    workout: {
+      name: currentWorkout.name,
+      exercises: currentWorkout.exercises.map(ex => ({
+        nazwa: ex.nazwa,
+        grupy: ex.grupy,
+        sets: (ex.sets||[]).filter(s=>s.done).map(s => ({ reps: s.reps, weight: s.weight }))
+      }))
+    },
+    prs: {},
+    goals: { cal: s.goalCal, p: s.goalP, f: s.goalF, c: s.goalC },
+    profile: getUserProfile()
+  };
+  // Dodaj PR dla ćwiczeń w treningu
+  currentWorkout.exercises.forEach(ex => {
+    const pr = getPR(ex.nazwa);
+    if(pr) ctx.prs[ex.nazwa] = pr;
+  });
+  localStorage.setItem(LS.aiChatContext, JSON.stringify(ctx));
+
+  // Otwórz screen ai-chat z flagą workout=true
+  showScreen('ai-chat');
+  // Dodaj wiadomość powitalną kontekstową
+  if(window.aiChatHistory && window.aiChatHistory.length === 0){
+    const welcome = `🏋️ **Asystent treningowy aktywny!**
+
+Mam dostęp do:
+• Aktualny trening: **${currentWorkout.name}**
+• ${currentWorkout.exercises.length} ćwiczeń: ${currentWorkout.exercises.map(e=>e.nazwa).join(', ')}
+• Twoje PR w tych ćwiczeniach: ${Object.keys(ctx.prs).length ? Object.entries(ctx.prs).map(([n,p])=>`${n}: ${p.weight}kg×${p.reps}`).join(', ') : 'brak'}
+• Cel kaloryczny: ${s.goalCal} kcal | B ${s.goalP}g T ${s.goalF}g W ${s.goalC}g
+
+Jak mogę pomóc? Możesz zapytać:
+• "Czy mogę zwiększyć ciężar w ${currentWorkout.exercises[0]?.nazwa || 'pierwszym ćwiczeniu'}?"
+• "Ile przerwy między seriami na ${currentWorkout.exercises[0]?.nazwa || 'to ćwiczenie'}?"
+• "Zamień ${currentWorkout.exercises[0]?.nazwa || 'to ćwiczenie'} na coś innego"
+• "Jak wyglądał mój ostatni trening ${currentWorkout.exercises[0]?.grupy?.[0] || 'klatki'}?"
+
+Lub wpisz własne pytanie!`;
+    window.aiChatHistory = [{role: 'assistant', content: welcome}];
+    renderAiChatMessages();
+  }
+}
+function closeWorkoutChat(){
+  _workoutChatOpen = false;
+  // Nie zamykamy ekranu — użytkownik kliknął back-btn
+}
+
 
 function renderWorkoutCreate(){
   if(!workoutDraft){
@@ -4507,6 +5197,11 @@ function toggleSetDone(exi,si){
       if(!pr || w>pr.weight){
         setPR(ex.nazwa, {weight:w, reps:r, date:todayKey()});
         flashPR();
+        // zapisz pobity PR na liście, do bonusu XP przy zapisie
+        if(!currentWorkout._newPRs) currentWorkout._newPRs = [];
+        const alreadyIdx = currentWorkout._newPRs.findIndex(p => p.name === ex.nazwa);
+        if(alreadyIdx < 0) currentWorkout._newPRs.push({ name: ex.nazwa, weight:w, reps:r });
+        saveActiveWorkout();
       }
     }
     // start rest
@@ -4561,12 +5256,40 @@ function getRecentSetsForExercise(name, limit=5){
 
 /* =================== REST TIMER =================== */
 let restInterval=null, restTotal=0, restRemain=0;
+let _notificationPermissionRequested = false;
+
+function _requestNotificationPermission(){
+  if(_notificationPermissionRequested) return Promise.resolve(Notification.permission);
+  _notificationPermissionRequested = true;
+  if(!('Notification' in window)) return Promise.resolve('denied');
+  return Notification.requestPermission().then(p => p);
+}
+
+function _sendRestEndNotification(){
+  if(!('Notification' in window)) return;
+  const s = getSettings();
+  if(s.restPush === false) return;
+  if(Notification.permission !== 'granted') return;
+  try{
+    const iconData = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💪</text></svg>';
+    new Notification('KAWCIA — Przerwa zakończona!', {
+      body: 'Czas na następną serię! 💪',
+      icon: iconData,
+      tag: 'rest-timer-end',
+      requireInteraction: true,
+      silent: true
+    });
+  }catch(e){ console.warn('Notification error:', e); }
+}
+
 function startRestTimer(secs){
   stopRestTimer(true);
   restTotal = secs; restRemain = secs;
   const banner = document.getElementById('restBanner');
   banner.classList.add('show');
   updateRestUI();
+  // Zażądaj uprawnień do powiadomień przy pierwszym użyciu timera
+  _requestNotificationPermission();
   restInterval = setInterval(()=>{
     restRemain--;
     if(restRemain<=0){
@@ -4607,6 +5330,8 @@ function restEndAlert(){
       setTimeout(()=>{ osc.stop(); ctx.close(); }, 220);
     }catch(e){}
   }
+  // Push notification (nawet jeśli aplikacja w tle)
+  _sendRestEndNotification();
   toast('⏱️ Czas wracać do roboty!','success');
 }
 
@@ -4616,12 +5341,28 @@ function finishWorkout(){
   const duration = Math.floor((Date.now()-workoutStartTs)/1000);
   const exCnt = currentWorkout.exercises.length;
   const setsCnt = currentWorkout.exercises.reduce((a,e)=>a+e.sets.length,0);
-  const vol = currentWorkout.exercises.reduce((a,e)=>a+e.sets.reduce((s,st)=>s+(Number(st.reps)||0)*(Number(st.weight)||0),0),0);
+  // Licz tylko wykonane serie dla objętości
+  const vol = currentWorkout.exercises.reduce((a,e)=>a+(e.sets||[]).filter(s=>s.done).reduce((s,st)=>s+(Number(st.reps)||0)*(Number(st.weight)||0),0),0);
+
+  // Preview XP (przed zapisem — symulacja)
+  const previewWorkout = { ...currentWorkout, duration };
+  const xpPreview = computeWorkoutXP(previewWorkout, {}, currentWorkout._newPRs || []);
+  document.getElementById('wkSummaryModal').dataset.xpPreview = JSON.stringify(xpPreview);
+
+  const prs = currentWorkout._newPRs || [];
   const rows = `
     <div class="ws-row"><span>Czas trwania</span><strong>${fmtDur(duration)}</strong></div>
     <div class="ws-row"><span>Ćwiczenia</span><strong>${exCnt}</strong></div>
     <div class="ws-row"><span>Serie wykonane</span><strong>${setsCnt}</strong></div>
     <div class="ws-row"><span>Łączny wolumen</span><strong>${Math.round(vol)} kg</strong></div>
+    <div class="ws-row"><span>🏆 Nowe PR</span><strong>${prs.length}</strong></div>
+    <div class="ws-row" style="border-color:var(--accent-border)"><span>⭐ XP zdobyte</span><strong style="color:var(--accent-text-2)">+${xpPreview.total}</strong></div>
+    <div style="font-size:11px;color:#7a7a8c;padding:6px 0 0;line-height:1.5">
+      ${xpPreview.regularityPct ? `• +${xpPreview.regularityPct}% za regularność<br>` : ''}
+      • +${xpPreview.varietyBonus} XP za różnorodność (${xpPreview.groups.length} partii)
+      • +${xpPreview.timeBonus} XP za czas treningu
+      ${prs.length ? `• +${prs.length * 50} XP za PR` : ''}
+    </div>
   `;
   document.getElementById('wkSummaryRows').innerHTML = rows;
   // stash data for save
@@ -4636,23 +5377,40 @@ function discardWorkout(){
 }
 function saveCompletedWorkout(){
   const duration = parseInt(document.getElementById('wkSummaryModal').dataset.duration)||0;
+  // zapisz do exercise history (przed zapisem treningu, by było w statystykach)
+  const completedWorkout = {
+    ...currentWorkout,
+    duration,
+    date: todayKey(),
+    ts: Date.now()
+  };
+  recordExerciseHistory(completedWorkout);
 
-  // zapisz rangi przed zapisem treningu
+  // XP — oblicz i zastosuj (CEL 1.2 / 1.4)
+  const newPRs = currentWorkout._newPRs || [];
+  const xpObj = computeWorkoutXP(completedWorkout, {}, newPRs);
+  const xpUps = applyWorkoutXP(xpObj);
+
+  // stary system (ratio-based) — zostawiony jako dodatkowy check
   const trainedGroups = getTrainedGroupsFromWorkout(currentWorkout);
   const ranksBefore = hasUserProfile() ? getGroupRanksSnapshot(trainedGroups) : {};
 
+  // usuń pola pomocnicze (_newPRs) przed zapisem
+  const workoutToSave = { ...currentWorkout };
+  delete workoutToSave._newPRs;
+
   const arr = getWorkouts();
   arr.push({
-    id: currentWorkout.id,
-    name: currentWorkout.name,
+    id: workoutToSave.id,
+    name: workoutToSave.name,
     date: todayKey(),
     ts: Date.now(),
     duration,
-    exercises: currentWorkout.exercises
+    exercises: workoutToSave.exercises
   });
   setWorkouts(arr);
 
-  // sprawdź awanse rang
+  // sprawdź awanse starego systemu (opcjonalnie kompatybilne z istniejącą logiką)
   const rankUps = hasUserProfile() ? checkRankUps(ranksBefore) : [];
 
   document.getElementById('wkSummaryModal').classList.remove('show');
@@ -4660,15 +5418,22 @@ function saveCompletedWorkout(){
   if(window.confetti){
     confetti({particleCount:120, spread:90, origin:{y:0.6}, colors:['#7c3aed','#db2777','#22c55e','#fbbf24']});
   }
-  toast('🎉 Trening zapisany!','success');
+  toast(`🎉 Trening zapisany! +${xpObj.total} XP`, 'success');
   checkAchievements();
 
-  // pokaż powiadomienia o awansach (kolejno, z opóźnieniem)
-  rankUps.forEach((up, i)=>{
-    setTimeout(()=>showRankUpToast(up.group, up.oldRank, up.newRank), 800 + i*2800);
+  // Nowe powiadomienia o awansach XP (po kolei z opóźnieniem)
+  xpUps.forEach((up, i)=>{
+    setTimeout(()=>showRankUpToastV2(up), 900 + i*2600);
   });
+  // Legacy awanse ratio-based (jeśli nie pokryją się z XP — dodatkowy toast, ale tylko gdy nie ma XP)
+  if(xpUps.length === 0){
+    rankUps.forEach((up, i)=>{
+      setTimeout(()=>showRankUpToast(up.group, up.oldRank, up.newRank), 900 + i*2600);
+    });
+  }
 
-  setTimeout(()=>showScreen('workout'), 500 + Math.max(0, rankUps.length)*2800);
+  const totalDelay = 500 + Math.max(xpUps.length, rankUps.length)*2600;
+  setTimeout(()=>showScreen('workout'), Math.min(totalDelay, 12000));
 }
 
 /* =================== WORKOUT TEMPLATES =================== */
